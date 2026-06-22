@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>IRON LOG — By Ray</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -35,6 +35,7 @@ body{
   font-family:var(--ff-body);
   min-height:100vh;
   -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
 }
 button{font-family:inherit;}
 ::selection{background:var(--red); color:#fff;}
@@ -50,38 +51,46 @@ a{color:inherit;}
 /* ============ TOPBAR ============ */
 .topbar{
   display:flex; align-items:center; justify-content:space-between;
-  padding:16px 28px; border-bottom:1px solid var(--line);
+  padding:12px 20px; border-bottom:1px solid var(--line);
   position:sticky; top:0; z-index:20;
-  background:rgba(7,6,8,.88); backdrop-filter: blur(12px);
+  background:rgba(7,6,8,.92); backdrop-filter: blur(12px);
+  gap:8px;
 }
-.brand{display:flex; align-items:center; gap:10px;}
-.brand .mark{width:30px;height:30px; position:relative; flex:none;}
+.brand{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+.brand .mark{width:28px;height:28px; position:relative; flex:none;}
 .brand .mark svg{width:100%;height:100%;}
-.brand .word{font-family:var(--ff-display); font-weight:900; letter-spacing:.12em; font-size:18px;}
+.brand .word{font-family:var(--ff-display); font-weight:900; letter-spacing:.12em; font-size:16px; white-space:nowrap;}
 .brand .word span{color:var(--red);}
-.nav-tabs{display:flex; gap:4px; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:4px;}
+
+/* nav scrollable on mobile */
+.nav-tabs{
+  display:flex; gap:3px; background:var(--panel); border:1px solid var(--line);
+  border-radius:999px; padding:3px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none; flex-shrink:1; min-width:0;
+}
+.nav-tabs::-webkit-scrollbar{display:none;}
 .nav-tabs button{
-  border:none; background:transparent; color:var(--muted); padding:7px 15px; border-radius:999px;
-  font-size:12px; font-weight:700; letter-spacing:.05em; cursor:pointer; text-transform:uppercase;
-  transition:.2s;
+  border:none; background:transparent; color:var(--muted); padding:7px 13px; border-radius:999px;
+  font-size:11px; font-weight:700; letter-spacing:.05em; cursor:pointer; text-transform:uppercase;
+  transition:.2s; white-space:nowrap; flex-shrink:0;
 }
 .nav-tabs button.active{background:var(--red); color:#fff; box-shadow:0 0 18px var(--red-glow);}
 .nav-tabs button:not(.active):hover{color:var(--text);}
-.topbar-right{display:flex; align-items:center; gap:12px;}
-.user-chip{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted);}
+.topbar-right{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+.user-chip{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); white-space:nowrap;}
 .user-chip b{color:var(--text); font-weight:700;}
 .icon-btn{
   background:var(--panel); border:1px solid var(--line); color:var(--muted);
   width:34px;height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:.2s; font-size:16px;
+  cursor:pointer; transition:.2s; font-size:16px; flex-shrink:0;
 }
 .icon-btn:hover{color:var(--red); border-color:var(--red-deep);}
 
-main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
+main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 
 /* ============ AUTH SCREEN ============ */
 .auth-wrap{
-  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
   position:relative; overflow:hidden;
 }
 .auth-wrap::before{
@@ -102,18 +111,19 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 .auth-card{
   position:relative; z-index:1;
   width:100%; max-width:420px; background:var(--panel); border:1px solid var(--line);
-  border-radius:20px; padding:40px 36px; box-shadow:0 30px 80px rgba(0,0,0,.6);
+  border-radius:20px; padding:36px 28px; box-shadow:0 30px 80px rgba(0,0,0,.6);
 }
+@media(max-width:480px){.auth-card{padding:28px 18px;border-radius:16px;}}
 .auth-card .mark{width:54px; height:54px; margin:0 auto 18px;}
 .auth-title{font-family:var(--ff-display); font-weight:900; font-size:26px; text-align:center; letter-spacing:.1em;}
 .auth-title span{color:var(--red);}
-.auth-sub{text-align:center; color:var(--muted); font-size:13px; margin-top:6px; margin-bottom:30px;}
-.field{margin-bottom:16px;}
+.auth-sub{text-align:center; color:var(--muted); font-size:13px; margin-top:6px; margin-bottom:28px;}
+.field{margin-bottom:14px;}
 .field label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted-2); margin-bottom:7px; font-weight:700;}
 .field input, .field select{
   width:100%; background:var(--black); border:1px solid var(--line); color:var(--text);
   padding:13px 14px; border-radius:10px; font-size:14px; outline:none; transition:.2s;
-  font-family:var(--ff-body);
+  font-family:var(--ff-body); -webkit-appearance:none;
 }
 .field input:focus, .field select:focus{border-color:var(--red); box-shadow:0 0 0 3px var(--red-glow);}
 .field select option{background:var(--panel);}
@@ -125,6 +135,7 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 .btn-primary{background:var(--red); color:#fff; box-shadow:0 8px 24px var(--red-glow);}
 .btn-primary:hover{filter:brightness(1.1); transform:translateY(-1px);}
 .btn-primary:active{transform:translateY(0);}
+.btn-primary:disabled{opacity:.5; cursor:not-allowed; transform:none; filter:none;}
 .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--text);}
 .btn-ghost:hover{border-color:var(--red-deep); color:var(--red);}
 .btn-danger{background:rgba(255,19,54,.12); border:1px solid var(--red-deep); color:#ff8a98;}
@@ -139,86 +150,93 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 .auth-foot{margin-top:22px; text-align:center; font-size:11px; color:var(--muted-2); letter-spacing:.03em;}
 
 /* ============ SECTION HEADERS ============ */
-.section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:10px;}
-.section-head h1{font-family:var(--ff-display); font-weight:900; font-size:22px; letter-spacing:.04em; margin:0;}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;}
+.section-head h1{font-family:var(--ff-display); font-weight:900; font-size:20px; letter-spacing:.04em; margin:0;}
 .section-head .eyebrow{font-size:10px; text-transform:uppercase; letter-spacing:.18em; color:var(--red); font-weight:700; margin-bottom:4px;}
-.date-pill{font-family:var(--ff-mono); font-size:12px; color:var(--muted); background:var(--panel); border:1px solid var(--line); padding:6px 12px; border-radius:999px;}
+.date-pill{font-family:var(--ff-mono); font-size:11px; color:var(--muted); background:var(--panel); border:1px solid var(--line); padding:6px 12px; border-radius:999px; white-space:nowrap;}
 
 /* ============ DASHBOARD ============ */
-.dash-grid{display:grid; grid-template-columns: 300px 1fr; gap:20px; align-items:start;}
-@media (max-width: 860px){ .dash-grid{grid-template-columns:1fr;} }
+.dash-grid{display:grid; grid-template-columns:280px 1fr; gap:18px; align-items:start;}
+@media (max-width:860px){
+  .dash-grid{grid-template-columns:1fr;}
+}
 
 .ring-card{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px;
-  display:flex; flex-direction:column; align-items:center; gap:16px; position:sticky; top:90px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px;
+  display:flex; flex-direction:column; align-items:center; gap:14px; position:sticky; top:70px;
 }
-@media (max-width:860px){ .ring-card{position:static;} }
-.ring-wrap{position:relative; width:180px; height:180px;}
+@media (max-width:860px){
+  .ring-card{position:static; flex-direction:row; flex-wrap:wrap; justify-content:center; gap:12px; padding:16px;}
+}
+.ring-wrap{position:relative; width:160px; height:160px; flex-shrink:0;}
+@media (max-width:860px){.ring-wrap{width:130px;height:130px;}}
 .ring-wrap svg{width:100%; height:100%; transform:rotate(-90deg);}
 .ring-bg{fill:none; stroke:var(--line); stroke-width:10;}
 .ring-fg{fill:none; stroke:var(--red); stroke-width:10; stroke-linecap:round; filter:drop-shadow(0 0 8px var(--red-glow)); transition: stroke-dashoffset .6s ease;}
 .ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-.ring-center .pct{font-family:var(--ff-display); font-size:36px; font-weight:900;}
-.ring-center .lbl{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:2px;}
-.ring-day{font-family:var(--ff-display); font-weight:700; font-size:13px; letter-spacing:.1em; color:var(--text);}
-.ring-stats{display:flex; gap:16px; width:100%; justify-content:center; border-top:1px solid var(--line); padding-top:14px;}
+.ring-center .pct{font-family:var(--ff-display); font-size:30px; font-weight:900;}
+.ring-center .lbl{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:2px;}
+.ring-day{font-family:var(--ff-display); font-weight:700; font-size:12px; letter-spacing:.1em; color:var(--text);}
+.ring-stats{display:flex; gap:14px; width:100%; justify-content:center; border-top:1px solid var(--line); padding-top:12px;}
 .ring-stat{text-align:center;}
-.ring-stat .v{font-family:var(--ff-mono); font-weight:700; font-size:17px; color:var(--red);}
+.ring-stat .v{font-family:var(--ff-mono); font-weight:700; font-size:16px; color:var(--red);}
 .ring-stat .k{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
 
 /* session complete banner */
 .complete-banner{
   background:linear-gradient(135deg, rgba(40,217,124,.12), rgba(40,217,124,.05));
-  border:1px solid rgba(40,217,124,.3); border-radius:10px; padding:14px 18px;
-  display:flex; align-items:center; gap:12px; margin-top:4px; width:100%;
+  border:1px solid rgba(40,217,124,.3); border-radius:10px; padding:12px 16px;
+  display:flex; align-items:center; gap:10px; width:100%;
 }
-.complete-banner .cb-icon{font-size:22px;}
-.complete-banner .cb-text{font-size:12px; color:var(--green); font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+.complete-banner .cb-icon{font-size:20px;}
+.complete-banner .cb-text{font-size:11px; color:var(--green); font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
 
 .rest-card{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:30px; text-align:center;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:28px; text-align:center;
 }
-.rest-card .big{font-family:var(--ff-display); font-size:18px; font-weight:900; margin-bottom:8px; letter-spacing:.06em;}
+.rest-card .big{font-family:var(--ff-display); font-size:16px; font-weight:900; margin-bottom:8px; letter-spacing:.06em;}
 .rest-card p{color:var(--muted); font-size:13px; line-height:1.7; margin:0;}
 
-.plan-col{display:flex; flex-direction:column; gap:14px;}
+.plan-col{display:flex; flex-direction:column; gap:12px;}
 .group-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
 .group-head{
-  display:flex; align-items:center; justify-content:space-between; padding:13px 18px;
+  display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
   background:var(--panel-2); border-bottom:1px solid var(--line);
 }
-.group-head h3{margin:0; font-family:var(--ff-display); font-size:12px; letter-spacing:.1em; font-weight:700; color:var(--red);}
+.group-head h3{margin:0; font-family:var(--ff-display); font-size:11px; letter-spacing:.1em; font-weight:700; color:var(--red);}
 .group-head .count{font-family:var(--ff-mono); font-size:10px; color:var(--muted);}
 .exercise-row{
-  display:flex; align-items:center; gap:14px; padding:13px 18px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line);
   transition: background .2s;
 }
 .exercise-row:last-child{border-bottom:none;}
 .exercise-row.done{background:rgba(40,217,124,.04);}
 .ex-check{
-  width:24px; height:24px; border-radius:7px; border:1.5px solid var(--line); flex:none; cursor:pointer;
+  width:26px; height:26px; border-radius:7px; border:1.5px solid var(--line); flex:none; cursor:pointer;
   display:flex; align-items:center; justify-content:center; transition:.2s; background:var(--black);
+  -webkit-tap-highlight-color:transparent;
 }
 .ex-check.checked{background:var(--green); border-color:var(--green); box-shadow:0 0 12px var(--green-glow);}
 .ex-check svg{width:13px; height:13px; opacity:0; transition:.15s;}
 .ex-check.checked svg{opacity:1;}
 .ex-info{flex:1; min-width:0;}
-.ex-name{font-weight:600; font-size:14px; transition:.2s;}
+.ex-name{font-weight:600; font-size:14px; transition:.2s; word-break:break-word;}
 .ex-name.done{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--muted-2);}
 .ex-meta{font-size:11px; color:var(--muted); font-family:var(--ff-mono); margin-top:3px;}
-.set-stepper{display:flex; align-items:center; gap:8px; flex:none;}
+.set-stepper{display:flex; align-items:center; gap:6px; flex:none;}
 .set-btn{
-  width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--text);
-  cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.15s; line-height:1;
+  width:30px; height:30px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--text);
+  cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:.15s; line-height:1;
+  -webkit-tap-highlight-color:transparent;
 }
 .set-btn:hover{border-color:var(--red); color:var(--red);}
-.set-display{font-family:var(--ff-mono); font-size:13px; min-width:38px; text-align:center; color:var(--text);}
+.set-display{font-family:var(--ff-mono); font-size:13px; min-width:36px; text-align:center; color:var(--text);}
 
 /* ============ STATS ============ */
-.stats-top{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px;}
-@media (max-width:760px){ .stats-top{grid-template-columns:repeat(2,1fr);} }
+.stats-top{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;}
+@media (max-width:600px){ .stats-top{grid-template-columns:repeat(2,1fr);} }
 .stat-card{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
   position:relative; overflow:hidden;
 }
 .stat-card::before{
@@ -226,30 +244,30 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
   width:80px; height:80px; border-radius:50%;
   background:radial-gradient(circle, rgba(255,19,54,.08), transparent 70%);
 }
-.stat-card .v{font-family:var(--ff-display); font-size:26px; font-weight:900; color:var(--red);}
+.stat-card .v{font-family:var(--ff-display); font-size:24px; font-weight:900; color:var(--red);}
 .stat-card .k{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:5px;}
 
-.month-nav{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
+.month-nav{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
 .month-nav button{
   background:var(--panel); border:1px solid var(--line); color:var(--text);
-  width:32px; height:32px; border-radius:8px; cursor:pointer; transition:.15s;
+  width:34px; height:34px; border-radius:8px; cursor:pointer; transition:.15s; font-size:16px;
 }
 .month-nav button:hover{border-color:var(--red); color:var(--red);}
-.month-nav .label{font-family:var(--ff-display); font-weight:700; font-size:14px; letter-spacing:.06em;}
+.month-nav .label{font-family:var(--ff-display); font-weight:700; font-size:13px; letter-spacing:.06em;}
 
-.cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px;}
-.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
-.cal-dow{text-align:center; font-size:9px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.08em; padding-bottom:8px; font-weight:700;}
+.cal-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+.cal-dow{text-align:center; font-size:9px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.08em; padding-bottom:6px; font-weight:700;}
 .cal-cell{
-  aspect-ratio:1; border-radius:8px; border:1px solid var(--line); position:relative; background:var(--black);
-  display:flex; align-items:flex-start; justify-content:flex-end; padding:5px;
-  font-family:var(--ff-mono); font-size:10px; color:var(--muted-2); cursor:default;
+  aspect-ratio:1; border-radius:6px; border:1px solid var(--line); position:relative; background:var(--black);
+  display:flex; align-items:flex-start; justify-content:flex-end; padding:3px;
+  font-family:var(--ff-mono); font-size:9px; color:var(--muted-2); cursor:default;
   transition: transform .15s;
 }
 .cal-cell:not(.empty):not(.future):hover{ transform:scale(1.08); z-index:2; }
 .cal-cell.empty{border:none; background:transparent;}
 .cal-cell.future{opacity:.3;}
-.cal-cell .fill{position:absolute; inset:0; border-radius:8px;}
+.cal-cell .fill{position:absolute; inset:0; border-radius:6px;}
 .cal-cell .num{position:relative; z-index:1;}
 .cal-cell.lvl-0 .fill{background:transparent;}
 .cal-cell.lvl-low .fill{background:rgba(255,19,54,.18);}
@@ -257,38 +275,42 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 .cal-cell.lvl-high .fill{background:rgba(255,19,54,.68);}
 .cal-cell.lvl-full .fill{background:var(--red); box-shadow:0 0 12px var(--red-glow);}
 .cal-cell.today{border-color:var(--red); border-width:1.5px;}
-.legend{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:11px; color:var(--muted); flex-wrap:wrap;}
+.legend{display:flex; align-items:center; gap:6px; margin-top:12px; font-size:11px; color:var(--muted); flex-wrap:wrap;}
 .legend .sw{width:12px; height:12px; border-radius:3px; flex:none;}
 
 /* streak bar */
 .streak-bar{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-  padding:16px 20px; margin-bottom:18px; display:flex; align-items:center; gap:14px;
+  padding:14px 18px; margin-bottom:16px; display:flex; align-items:center; gap:12px;
 }
 .streak-bar .fire{font-size:22px;}
-.streak-bar .streak-text{font-family:var(--ff-display); font-size:13px; letter-spacing:.06em;}
+.streak-bar .streak-text{font-family:var(--ff-display); font-size:12px; letter-spacing:.06em;}
 .streak-bar .streak-num{color:var(--red); font-size:20px; font-weight:900;}
 
 /* ============ PLAN VIEW ============ */
 .plan-section-label{
   font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted);
-  font-weight:700; padding:10px 18px 2px;
+  font-weight:700; padding:10px 16px 2px;
 }
 
 /* ============ SETTINGS ============ */
-.settings-grid{display:grid; gap:16px; max-width:540px;}
-.settings-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px;}
-.settings-card h3{font-family:var(--ff-display); font-size:13px; letter-spacing:.08em; margin:0 0 16px; color:var(--text);}
-.settings-card p{font-size:13px; color:var(--muted); margin:0 0 14px; line-height:1.6;}
+.settings-grid{display:grid; gap:14px; max-width:540px;}
+.settings-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:20px;}
+.settings-card h3{font-family:var(--ff-display); font-size:12px; letter-spacing:.08em; margin:0 0 14px; color:var(--text);}
+.settings-card p{font-size:13px; color:var(--muted); margin:0 0 12px; line-height:1.6;}
 .danger-text{color:#ff8a98; font-size:12px; margin-top:10px;}
 
 /* ============ PLAN EDITOR ============ */
-.edit-day-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:14px; overflow:hidden;}
-.edit-day-head{display:flex; align-items:center; justify-content:space-between; padding:13px 18px; background:var(--panel-2); border-bottom:1px solid var(--line);}
-.edit-day-head h3{margin:0; font-family:var(--ff-display); font-size:12px; letter-spacing:.1em; color:var(--red);}
-.edit-row{display:grid; grid-template-columns:1fr 1.8fr .7fr .9fr 30px; gap:8px; align-items:end; padding:10px 18px; border-bottom:1px solid var(--line);}
+.edit-day-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:12px; overflow:hidden;}
+.edit-day-head{display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--panel-2); border-bottom:1px solid var(--line);}
+.edit-day-head h3{margin:0; font-family:var(--ff-display); font-size:11px; letter-spacing:.1em; color:var(--red);}
+.edit-row{display:grid; grid-template-columns:1fr 1.8fr .7fr .9fr 30px; gap:8px; align-items:end; padding:10px 16px; border-bottom:1px solid var(--line);}
 .edit-row:last-of-type{border-bottom:none;}
-@media (max-width:760px){ .edit-row{grid-template-columns:1fr; gap:6px; padding:12px 18px;} }
+@media (max-width:600px){
+  .edit-row{grid-template-columns:1fr 1fr; gap:6px; padding:12px 16px;}
+  .edit-row > div:nth-child(2){grid-column:1/-1;}
+  .row-del{grid-column:2; justify-self:end; align-self:flex-end;}
+}
 .edit-row input{
   width:100%; background:var(--black); border:1px solid var(--line); color:var(--text);
   padding:8px 10px; border-radius:8px; font-size:12.5px; outline:none; transition:.2s; font-family:var(--ff-body);
@@ -296,30 +318,31 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 .edit-row input:focus{border-color:var(--red); box-shadow:0 0 0 2px var(--red-glow);}
 .mini-lbl{font-size:9px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; font-weight:700;}
 .row-del{
-  width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--muted);
+  width:28px; height:28px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--muted);
   cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:.15s; flex:none;
   align-self:flex-end;
 }
 .row-del:hover{border-color:var(--red); color:var(--red);}
 .add-ex-btn{
-  margin:10px 18px 14px; padding:9px 14px; border-radius:8px; border:1px dashed var(--line); background:transparent;
+  margin:10px 16px 12px; padding:9px 14px; border-radius:8px; border:1px dashed var(--line); background:transparent;
   color:var(--muted); font-size:11px; font-weight:700; cursor:pointer; text-transform:uppercase; letter-spacing:.06em; transition:.2s;
-  display:block; width:calc(100% - 36px);
+  display:block; width:calc(100% - 32px);
 }
 .add-ex-btn:hover{border-color:var(--red-deep); color:var(--red);}
-.edit-rest-note{padding:14px 18px; color:var(--muted-2); font-size:12px;}
-.plan-edit-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:8px; padding-bottom:40px;}
-.plan-edit-actions .btn{width:auto; padding:12px 26px;}
+.edit-rest-note{padding:14px 16px; color:var(--muted-2); font-size:12px;}
+.plan-edit-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:8px; padding-bottom:40px; flex-wrap:wrap;}
+.plan-edit-actions .btn{width:auto; padding:12px 24px;}
 
 /* ============ TOAST & LOADER ============ */
 .toast{
-  position:fixed; bottom:24px; right:24px; background:var(--panel-2); border:1px solid var(--red-deep);
-  color:var(--text); padding:13px 18px; border-radius:10px; font-size:13px; z-index:200;
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--panel-2); border:1px solid var(--red-deep);
+  color:var(--text); padding:12px 18px; border-radius:10px; font-size:13px; z-index:200;
   box-shadow:0 10px 30px rgba(0,0,0,.5);
-  transform:translateY(20px); opacity:0; transition:.25s; pointer-events:none;
-  max-width:300px;
+  opacity:0; transition:.25s; pointer-events:none;
+  max-width:90vw; text-align:center; white-space:nowrap;
 }
-.toast.show{transform:translateY(0); opacity:1;}
+.toast.show{transform:translateX(-50%) translateY(0); opacity:1;}
 .toast.good{border-color:rgba(40,217,124,.4); color:var(--green);}
 .loader{
   position:fixed; inset:0; background:rgba(7,6,8,.7); display:flex; align-items:center; justify-content:center; z-index:300;
@@ -327,16 +350,19 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 }
 .spinner{width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--red); border-radius:50%; animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.empty-state{text-align:center; padding:60px 20px; color:var(--muted);}
-.empty-state .big{font-family:var(--ff-display); font-size:16px; color:var(--text); margin-bottom:8px; letter-spacing:.06em;}
+.empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
+.empty-state .big{font-family:var(--ff-display); font-size:15px; color:var(--text); margin-bottom:8px; letter-spacing:.06em;}
 
 /* ============ RESPONSIVE NAV ============ */
-@media (max-width:600px){
-  .topbar{padding:14px 16px;}
-  main{padding:18px 16px;}
-  .nav-tabs button{padding:7px 11px; font-size:10px;}
+@media (max-width:480px){
+  .topbar{padding:10px 14px;}
+  main{padding:16px 14px;}
   .user-chip{display:none;}
-  .brand .word{font-size:15px;}
+  .brand .word{font-size:14px;}
+  .nav-tabs button{padding:6px 10px; font-size:10px; letter-spacing:.03em;}
+}
+@media (max-width:360px){
+  .brand .word{display:none;}
 }
 </style>
 </head>
@@ -358,16 +384,16 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 
       <!-- LOGIN -->
       <div id="loginForm">
-        <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username"></div>
+        <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
         <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
         <button class="btn btn-primary" id="loginBtn">Enter the log</button>
       </div>
 
       <!-- REGISTER -->
       <div id="registerForm" class="hidden">
-        <div class="field"><label>Choose a username</label><input type="text" id="regUser" autocomplete="username"></div>
+        <div class="field"><label>Choose a username</label><input type="text" id="regUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
         <div class="field"><label>Choose a password</label><input type="password" id="regPass" autocomplete="new-password"></div>
-        <div class="field"><label>Confirm password</label><input type="password" id="regPass2"></div>
+        <div class="field"><label>Confirm password</label><input type="password" id="regPass2" autocomplete="new-password"></div>
         <button class="btn btn-primary" id="registerBtn">Create account</button>
       </div>
 
@@ -386,7 +412,7 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
         <div class="mark">
           <svg viewBox="0 0 48 48"><path d="M6 18h6v12H6z" fill="#ff1336"/><path d="M14 22h4v4h-4z" fill="#ff1336"/><path d="M18 14h6v20h-6z" fill="#f3eef0"/><path d="M24 14h6v20h-6z" fill="#f3eef0"/><path d="M30 22h4v4h-4z" fill="#ff1336"/><path d="M36 18h6v12h-6z" fill="#ff1336"/></svg>
         </div>
-        <div class="word">IRON<span>LOG</span> <span style="font-size:9px;color:var(--muted);font-family:var(--ff-mono);font-weight:400;letter-spacing:.08em;">by Ray</span></div>
+        <div class="word">IRON<span>LOG</span></div>
       </div>
       <div class="nav-tabs">
         <button data-view="dashboard" class="active">Today</button>
@@ -395,7 +421,7 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
         <button data-view="settings">⚙</button>
       </div>
       <div class="topbar-right">
-        <div class="user-chip">Logged in as <b id="userChipName">—</b></div>
+        <div class="user-chip">Hi, <b id="userChipName">—</b></div>
         <button class="icon-btn" id="logoutBtn" title="Log out">↩</button>
       </div>
     </div>
@@ -472,7 +498,7 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
           </div>
           <div class="settings-card">
             <h3>About</h3>
-            <p>IRON LOG — By Ray. v1.0 — Built for serious lifters. Your data lives in your own Google Sheet. 5-day split: Back+Bi · Chest+Tri · Shoulders+Legs+Abs · Bi+Back · Tri+Chest · Legs+Shoulders+Abs.</p>
+            <p>IRON LOG — By Ray. v1.1 — Built for serious lifters. Your data lives in your own Google Sheet. 6-day split: Back+Bi · Chest+Tri · Shoulders+Legs+Abs · Bi+Back · Tri+Chest · Legs+Shoulders+Abs.</p>
             <p style="margin:0;">3 sets · 12–15 reps · No excuses.</p>
           </div>
           <div class="settings-card">
@@ -491,14 +517,26 @@ main{flex:1; padding:26px 28px; max-width:1180px; margin:0 auto; width:100%;}
 
 <script>
 /* ============================================================
-   IRON LOG — Frontend v1.0
+   IRON LOG — Frontend v1.1 (Bug-fixed)
+   ============================================================
+   Fixes applied:
+   1. api() now handles non-JSON responses (Google redirect on register) gracefully
+   2. register flow no longer shows false "server not reached" error
+   3. Default plan auto-saved on first login so it persists
+   4. Mobile layout: ring card goes horizontal, nav scrolls, toast centered
+   5. logout(true) no longer triggers another api call (loop prevention)
+   6. apiUrlInput pre-filled with current URL correctly
+   7. Set stepper touch targets enlarged for mobile
+   8. Loader no longer blocks ui if api call throws synchronously
+   9. enterApp properly awaits and catches loadPlanAndToday errors
+   10. Auth buttons disabled while loading to prevent double-submit
    ============================================================ */
 
 let API_URL = localStorage.getItem('ironlog_api_url') || 'https://script.google.com/macros/s/AKfycbz1ASGu3ydximAYXT6taOYzpLJubmJn53-VPkWDlhmBpBTWvzWip9tkVJmiKp99QcZVag/exec';
 
 const DAYS_ORDER = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
 
-/* ---- DEFAULT WORKOUT PLAN (pre-loaded for first-time setup) ---- */
+/* ---- DEFAULT WORKOUT PLAN ---- */
 const DEFAULT_PLAN = {
   MONDAY: [
     { groupName:'BACK', exerciseName:'Lat Pulldown', sets:3, reps:'12-15' },
@@ -574,7 +612,7 @@ function todayStr(){ const d = new Date(); return d.getFullYear()+'-'+pad(d.getM
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayDayName(){ return DAYS_ORDER[ (new Date().getDay()+6) % 7 ]; }
 function showLoader(v){ document.getElementById('loader').classList.toggle('hidden', !v); }
-function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 let toastTimer = null;
@@ -584,10 +622,16 @@ function toast(msg, good=false){
   t.classList.toggle('good', good);
   t.classList.add('show');
   if(toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
 }
 
-/* ---- API ---- */
+/* ---- API ----
+   FIX #1: Google Apps Script sometimes responds with a non-JSON HTML page
+   (e.g. on first deploy, redirect pages, or CORS preflight). We parse as text
+   first and then JSON so we can show a useful error instead of crashing.
+   FIX #2: No-API-URL check happens before showing loader so loader doesn't
+   get stuck on if we throw before the finally block.
+*/
 async function api(action, payload={}){
   if(!API_URL || API_URL.includes('PASTE_YOUR')){
     toast('Set your Apps Script URL in Settings first.');
@@ -597,18 +641,38 @@ async function api(action, payload={}){
   try{
     const res = await fetch(API_URL, {
       method:'POST',
+      // text/plain avoids CORS preflight — Google Apps Script requires this trick
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({ action, token: state.token, ...payload })
     });
-    const data = await res.json();
-    if(data.authError){ logout(true); throw new Error('Session expired'); }
+    // FIX: read as text first, then parse — avoids unhandled JSON parse crash
+    const text = await res.text();
+    let data;
+    try{
+      data = JSON.parse(text);
+    } catch(_){
+      // Google returned a non-JSON page (e.g. login redirect, deploy error)
+      console.error('Non-JSON response from API:', text.slice(0, 300));
+      throw new Error('Server returned an unexpected response. Check your Apps Script URL in Settings.');
+    }
+    if(data.authError){
+      // FIX #5: only call logout(true) to avoid recursive api call
+      logout(true);
+      throw new Error('Session expired');
+    }
     return data;
-  } finally { showLoader(false); }
+  } finally {
+    showLoader(false);
+  }
 }
 
 /* ---- AUTH ---- */
 function showAuthError(msg){ const el=document.getElementById('authError'); el.textContent=msg; el.classList.add('show'); }
 function clearAuthError(){ document.getElementById('authError').classList.remove('show'); }
+function setAuthBusy(busy){
+  document.getElementById('loginBtn').disabled = busy;
+  document.getElementById('registerBtn').disabled = busy;
+}
 
 document.getElementById('switchToRegister').onclick = () => {
   document.getElementById('loginForm').classList.add('hidden');
@@ -630,14 +694,20 @@ document.getElementById('loginBtn').onclick = async () => {
   const username = document.getElementById('loginUser').value.trim();
   const password = document.getElementById('loginPass').value;
   if(!username || !password){ showAuthError('Enter your username and password.'); return; }
+  setAuthBusy(true);
   try{
     const data = await api('login', { username, password });
     if(!data.ok){ showAuthError(data.error || 'Login failed.'); return; }
     completeLogin(data);
-  }catch(e){ if(e.message !== 'No API URL') showAuthError('Cannot reach the server. Set your API URL in Settings first.'); }
+  }catch(e){
+    if(e.message !== 'No API URL' && e.message !== 'Session expired'){
+      showAuthError(e.message || 'Cannot reach the server. Check your API URL in Settings.');
+    }
+  } finally { setAuthBusy(false); }
 };
 
 document.getElementById('loginPass').onkeydown = (e) => { if(e.key==='Enter') document.getElementById('loginBtn').click(); };
+document.getElementById('regPass2').onkeydown = (e) => { if(e.key==='Enter') document.getElementById('registerBtn').click(); };
 
 document.getElementById('registerBtn').onclick = async () => {
   clearAuthError();
@@ -647,11 +717,17 @@ document.getElementById('registerBtn').onclick = async () => {
   if(!username){ showAuthError('Choose a username.'); return; }
   if(p1.length < 6){ showAuthError('Password must be at least 6 characters.'); return; }
   if(p1 !== p2){ showAuthError('Passwords do not match.'); return; }
+  setAuthBusy(true);
   try{
     const data = await api('register', { username, password: p1 });
+    // FIX #2: api() now properly parses response; if we get here without throwing, it worked
     if(!data.ok){ showAuthError(data.error || 'Could not create account.'); return; }
     completeLogin(data);
-  }catch(e){ if(e.message !== 'No API URL') showAuthError('Cannot reach server.'); }
+  }catch(e){
+    if(e.message !== 'No API URL' && e.message !== 'Session expired'){
+      showAuthError(e.message || 'Cannot reach server. Check your API URL in Settings.');
+    }
+  } finally { setAuthBusy(false); }
 };
 
 function completeLogin(data){
@@ -660,9 +736,13 @@ function completeLogin(data){
   localStorage.setItem('ironlog_username', data.username);
   enterApp();
 }
+
+// FIX #5: logout(silent=true) must NOT call api() to avoid loops
 function logout(silent){
-  if(!silent) api('logout', {}).catch(()=>{});
-  state.token = null; state.username = null;
+  if(!silent && state.token){
+    api('logout', {}).catch(()=>{});
+  }
+  state.token = null; state.username = null; state.plan = null; state.todayLogs = {};
   localStorage.removeItem('ironlog_token'); localStorage.removeItem('ironlog_username');
   document.getElementById('mainScreen').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
@@ -680,7 +760,15 @@ function switchView(view){
     document.getElementById('view-'+v).classList.toggle('hidden', v !== view);
   });
   if(view === 'stats') loadStats();
-  if(view === 'plan'){ state.planEditMode=false; state.planDraft=null; document.getElementById('editPlanToggle').textContent='Edit plan'; renderPlanView(); }
+  if(view === 'plan'){
+    state.planEditMode=false; state.planDraft=null;
+    document.getElementById('editPlanToggle').textContent='Edit plan';
+    renderPlanView();
+  }
+  if(view === 'settings'){
+    // FIX #6: always fill apiUrlInput with current URL (not just if it has a placeholder)
+    document.getElementById('apiUrlInput').value = API_URL;
+  }
 }
 
 /* ---- APP ENTRY ---- */
@@ -688,14 +776,34 @@ async function enterApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
-  document.getElementById('apiUrlInput').value = API_URL.includes('PASTE_YOUR') ? '' : API_URL;
-  await loadPlanAndToday();
+  document.getElementById('apiUrlInput').value = API_URL;
+  // FIX #9: wrap in try/catch so a failed loadPlanAndToday doesn't leave app in broken state
+  try{
+    await loadPlanAndToday();
+  }catch(e){
+    console.error('Failed to load plan/today data:', e);
+    // Still show the app but with default plan
+    if(!state.plan) state.plan = DEFAULT_PLAN;
+    const day = todayDayName();
+    document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
+    document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
+    renderDashboard(day);
+    toast('Could not load data from server. Working offline.');
+  }
 }
 
 async function loadPlanAndToday(){
   const planRes = await api('getPlan', {});
-  if(!planRes.ok) return;
-  state.plan = planRes.plan || DEFAULT_PLAN;
+  if(!planRes.ok) throw new Error(planRes.error || 'Could not load plan');
+
+  // FIX #3: If server returns null plan (new user), use DEFAULT_PLAN and save it
+  if(planRes.plan === null){
+    state.plan = DEFAULT_PLAN;
+    // Save default plan silently so it persists for this user
+    api('savePlan', { plan: DEFAULT_PLAN }).catch(()=>{});
+  } else {
+    state.plan = planRes.plan;
+  }
 
   const day = todayDayName();
   document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
@@ -703,8 +811,8 @@ async function loadPlanAndToday(){
 
   const logRes = await api('getDayLog', { date: todayStr() });
   state.todayLogs = {};
-  if(logRes.ok){
-    logRes.logs.forEach(l => state.todayLogs[l.exerciseName] = l);
+  if(logRes.ok && logRes.logs){
+    logRes.logs.forEach(l => { state.todayLogs[l.exerciseName] = l; });
   }
   renderDashboard(day);
 }
@@ -725,7 +833,7 @@ function renderDashboard(day){
       </div>
       <div class="rest-card">
         <div class="big">No session today</div>
-        <p>Sunday is your rest day. Use it to hydrate, stretch, and let your muscles recover. See you Monday for Back & Biceps.</p>
+        <p>Sunday is your rest day. Use it to hydrate, stretch, and let your muscles recover. See you Monday for Back &amp; Biceps.</p>
       </div>`;
     return;
   }
@@ -743,7 +851,8 @@ function renderDashboard(day){
   const totalSets = groups.reduce((s,ex)=>s+Number(ex.sets),0);
   const setsDone = groups.reduce((s,ex)=> s + Number(state.todayLogs[ex.exerciseName]?.setsDone || 0), 0);
   const pct = totalEx ? Math.round((doneEx/totalEx)*100) : 0;
-  const C = 2*Math.PI*80;
+  const R = 65;
+  const C = 2*Math.PI*R;
   const offset = C - (pct/100)*C;
 
   let completeBanner = '';
@@ -782,9 +891,9 @@ function renderDashboard(day){
   container.innerHTML = `
     <div class="ring-card">
       <div class="ring-wrap">
-        <svg viewBox="0 0 180 180">
-          <circle class="ring-bg" cx="90" cy="90" r="80"></circle>
-          <circle class="ring-fg" cx="90" cy="90" r="80" stroke-dasharray="${C}" stroke-dashoffset="${offset}"></circle>
+        <svg viewBox="0 0 160 160">
+          <circle class="ring-bg" cx="80" cy="80" r="${R}"></circle>
+          <circle class="ring-fg" cx="80" cy="80" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${offset}"></circle>
         </svg>
         <div class="ring-center">
           <div class="pct">${pct}%</div>
@@ -820,8 +929,10 @@ async function handleToggle(row, exName, target){
   const newDone = !wasDone;
   const setsDoneVal = newDone ? target : 0;
   updateRowUI(row, setsDoneVal, target, newDone);
-  await saveLog(exName, setsDoneVal, target, newDone);
+  // update local state immediately (FIX: sync before api call)
+  state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:todayDayName() };
   refreshRing();
+  await saveLog(exName, setsDoneVal, target, newDone);
 }
 
 async function handleStep(row, exName, target, delta){
@@ -830,8 +941,10 @@ async function handleStep(row, exName, target, delta){
   cur = Math.max(0, Math.min(target, cur + delta));
   const completed = cur >= target;
   updateRowUI(row, cur, target, completed);
-  await saveLog(exName, cur, target, completed);
+  // update local state immediately
+  state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:todayDayName() };
   refreshRing();
+  await saveLog(exName, cur, target, completed);
 }
 
 function updateRowUI(row, cur, target, completed){
@@ -843,10 +956,12 @@ function updateRowUI(row, cur, target, completed){
 
 async function saveLog(exerciseName, setsDone, targetSets, completed){
   const day = todayDayName();
-  state.todayLogs[exerciseName] = { exerciseName, setsDone, targetSets, completed, date: todayStr(), day };
   try{
-    await api('saveExerciseLog', { date: todayStr(), day, exerciseName, setsDone, targetSets, completed });
-  }catch(e){ toast('Could not save — check your connection.'); }
+    const res = await api('saveExerciseLog', { date:todayStr(), day, exerciseName, setsDone, targetSets, completed });
+    if(!res.ok) toast('Save failed: ' + (res.error || 'Unknown error'));
+  }catch(e){
+    if(e.message !== 'Session expired') toast('Could not save — check your connection.');
+  }
 }
 
 function refreshRing(){
@@ -857,7 +972,7 @@ function refreshRing(){
   const totalSets = groups.reduce((s,ex)=>s+Number(ex.sets),0);
   const setsDone = groups.reduce((s,ex)=> s + Number(state.todayLogs[ex.exerciseName]?.setsDone || 0), 0);
   const pct = totalEx ? Math.round((doneEx/totalEx)*100) : 0;
-  const C = 2*Math.PI*80;
+  const R = 65; const C = 2*Math.PI*R;
   const offset = C - (pct/100)*C;
   const ringFg = document.querySelector('.ring-fg');
   if(ringFg) ringFg.setAttribute('stroke-dashoffset', offset);
@@ -880,10 +995,12 @@ function refreshRing(){
 async function loadStats(){
   document.getElementById('monthLabel').textContent =
     new Date(state.statsYear, state.statsMonth-1, 1).toLocaleDateString(undefined,{month:'long', year:'numeric'});
-  const res = await api('getMonthStats', { year: state.statsYear, month: state.statsMonth });
-  if(!res.ok) return;
-  renderStatsTop(res.summary);
-  renderCalendar(res.days);
+  try{
+    const res = await api('getMonthStats', { year: state.statsYear, month: state.statsMonth });
+    if(!res.ok){ toast(res.error || 'Could not load stats.'); return; }
+    renderStatsTop(res.summary);
+    renderCalendar(res.days);
+  }catch(e){ if(e.message !== 'Session expired') toast('Could not load stats.'); }
 }
 document.getElementById('prevMonth').onclick = () => shiftMonth(-1);
 document.getElementById('nextMonth').onclick = () => shiftMonth(1);
@@ -899,7 +1016,7 @@ function renderStatsTop(s){
   if(streak > 0){
     document.getElementById('streakBar').classList.remove('hidden');
     document.getElementById('streakNum').textContent = streak;
-    document.getElementById('streakLabel').textContent = streak === 1 ? 'day' : 'days';
+    document.getElementById('streakLabel').textContent = streak === 1 ? 'day streak' : 'day streak';
   } else {
     document.getElementById('streakBar').classList.add('hidden');
   }
@@ -916,10 +1033,10 @@ function renderStatsTop(s){
 
 function renderCalendar(days){
   const map = {};
-  days.forEach(d => map[d.date] = d);
+  (days||[]).forEach(d => { map[d.date] = d; });
   const { statsYear:year, statsMonth:month } = state;
   const firstDay = new Date(year, month-1, 1);
-  const startOffset = (firstDay.getDay()+6)%7;
+  const startOffset = (firstDay.getDay()+6)%7; // Mon=0
   const daysInMonth = new Date(year, month, 0).getDate();
   const todayS = todayStr();
 
@@ -958,13 +1075,13 @@ function renderPlanView(){
     const isToday = day === todayDay;
     const doneToday = isToday ? items.filter(ex => isCompleted(state.todayLogs[ex.exerciseName])).length : null;
 
-    html += `<div class="group-card" style="margin-bottom:14px; ${isToday ? 'border-color:var(--red-deep);' : ''}">
+    html += `<div class="group-card" style="margin-bottom:12px; ${isToday ? 'border-color:var(--red-deep);' : ''}">
       <div class="group-head">
-        <h3>${day}${isToday ? ' <span style="color:var(--amber);font-size:10px;"> · TODAY</span>' : ''}</h3>
+        <h3>${day}${isToday ? ' <span style="color:var(--amber);font-size:9px;"> · TODAY</span>' : ''}</h3>
         <span class="count">${items.length ? items.length+' MOVEMENTS' : 'REST DAY'}${isToday && items.length ? ' · '+doneToday+'/'+items.length+' DONE' : ''}</span>
       </div>`;
     if(items.length === 0){
-      html += `<div style="padding:14px 18px;color:var(--muted-2);font-size:13px;">Rest &amp; recovery — no exercises planned.</div>`;
+      html += `<div style="padding:14px 16px;color:var(--muted-2);font-size:13px;">Rest &amp; recovery — no exercises planned.</div>`;
     } else {
       let curGroup = null;
       items.forEach(ex => {
@@ -992,6 +1109,7 @@ document.getElementById('editPlanToggle').onclick = () => {
     state.planEditMode = false; state.planDraft = null;
     document.getElementById('editPlanToggle').textContent = 'Edit plan';
   } else {
+    if(!state.plan){ toast('Plan not loaded yet.'); return; }
     state.planEditMode = true;
     state.planDraft = JSON.parse(JSON.stringify(state.plan));
     DAYS_ORDER.forEach(d => { if(!state.planDraft[d]) state.planDraft[d] = []; });
@@ -1070,13 +1188,15 @@ async function savePlanChanges(){
         reps: String(ex.reps||'12-15').trim() || '12-15'
       }));
   });
-  const res = await api('savePlan', { plan: cleaned });
-  if(!res.ok){ toast(res.error || 'Could not save plan.'); return; }
-  state.plan = cleaned;
-  state.planEditMode=false; state.planDraft=null;
-  document.getElementById('editPlanToggle').textContent='Edit plan';
-  toast('Plan saved!', true);
-  renderPlanView();
+  try{
+    const res = await api('savePlan', { plan: cleaned });
+    if(!res.ok){ toast(res.error || 'Could not save plan.'); return; }
+    state.plan = cleaned;
+    state.planEditMode=false; state.planDraft=null;
+    document.getElementById('editPlanToggle').textContent='Edit plan';
+    toast('Plan saved!', true);
+    renderPlanView();
+  }catch(e){ if(e.message !== 'Session expired') toast('Could not save plan.'); }
 }
 
 /* ---- SETTINGS ---- */
@@ -1085,17 +1205,25 @@ document.getElementById('changePassBtn').onclick = async () => {
   const newPassword = document.getElementById('newPass').value;
   if(!oldPassword || !newPassword){ toast('Fill both password fields.'); return; }
   if(newPassword.length < 6){ toast('New password must be at least 6 characters.'); return; }
-  const res = await api('changePassword', { oldPassword, newPassword });
-  if(res.ok){ toast('Password updated!', true); document.getElementById('curPass').value=''; document.getElementById('newPass').value=''; }
-  else toast(res.error || 'Could not update password.');
+  try{
+    const res = await api('changePassword', { oldPassword, newPassword });
+    if(res.ok){
+      toast('Password updated!', true);
+      document.getElementById('curPass').value='';
+      document.getElementById('newPass').value='';
+    } else {
+      toast(res.error || 'Could not update password.');
+    }
+  }catch(e){ if(e.message !== 'Session expired') toast('Could not update password.'); }
 };
+
 document.getElementById('saveApiUrl').onclick = () => {
   const v = document.getElementById('apiUrlInput').value.trim();
   if(!v){ toast('Enter a URL first.'); return; }
   API_URL = v;
   localStorage.setItem('ironlog_api_url', v);
   toast('Saved! Reloading…', true);
-  setTimeout(()=>location.reload(), 800);
+  setTimeout(()=>location.reload(), 900);
 };
 
 /* ---- BOOT ---- */
@@ -1103,9 +1231,9 @@ document.getElementById('saveApiUrl').onclick = () => {
   if(state.token){
     try{
       const v = await api('validateSession', {});
-      if(v.ok){ enterApp(); return; }
-    }catch(e){}
-    logout(true);
+      if(v && v.ok){ enterApp(); return; }
+    }catch(e){ /* token invalid or network error */ }
+    logout(true); // clear invalid token silently
   }
 })();
 </script>
