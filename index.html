@@ -231,6 +231,52 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 }
 .set-btn:hover{border-color:var(--red); color:var(--red);}
 .set-display{font-family:var(--ff-mono); font-size:13px; min-width:36px; text-align:center; color:var(--text);}
+.info-btn{
+  width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--muted);
+  cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.info-btn:hover{border-color:var(--red); color:var(--red);}
+
+/* ============ MODAL ============ */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(5,4,6,.78); backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center; z-index:250; padding:20px;
+  opacity:0; pointer-events:none; transition:.2s;
+}
+.modal-overlay.show{opacity:1; pointer-events:auto;}
+.modal-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:18px; max-width:480px; width:100%;
+  max-height:85vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,.6); transform:translateY(14px); transition:.2s;
+}
+.modal-overlay.show .modal-card{transform:translateY(0);}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--line);}
+.modal-head h3{margin:0; font-family:var(--ff-display); font-size:15px; letter-spacing:.04em;}
+.modal-close{background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px; line-height:1;}
+.modal-close:hover{color:var(--red);}
+.modal-img-wrap{
+  width:100%; aspect-ratio:16/10; background:var(--black); display:flex; align-items:center; justify-content:center;
+  border-bottom:1px solid var(--line); overflow:hidden;
+}
+.modal-img-wrap img{width:100%; height:100%; object-fit:cover;}
+.modal-body{padding:20px;}
+.modal-tag{display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--red); font-weight:700; background:rgba(255,19,54,.1); padding:4px 10px; border-radius:999px; margin-bottom:14px;}
+.modal-body .howto-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted-2); font-weight:700; margin-bottom:8px;}
+.modal-body p{font-size:14px; line-height:1.7; color:var(--text); margin:0 0 16px;}
+.modal-meta-row{display:flex; gap:18px; margin-bottom:4px;}
+.modal-meta-row .mm{font-family:var(--ff-mono); font-size:13px; color:var(--muted);}
+.modal-meta-row .mm b{color:var(--text);}
+
+/* day-detail modal list */
+.day-modal-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
+.day-modal-row:last-child{border-bottom:none;}
+.day-modal-dot{width:10px;height:10px;border-radius:50%; flex:none;}
+.day-modal-dot.yes{background:var(--green); box-shadow:0 0 8px rgba(40,217,124,.4);}
+.day-modal-dot.no{background:var(--line);}
+.day-modal-name{flex:1; font-size:13px;}
+.day-modal-sets{font-family:var(--ff-mono); font-size:12px; color:var(--muted);}
+.cal-cell{cursor:pointer;}
+.cal-cell.empty, .cal-cell.future{cursor:default;}
 
 /* ============ STATS ============ */
 .stats-top{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;}
@@ -352,6 +398,17 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
 .empty-state .big{font-family:var(--ff-display); font-size:15px; color:var(--text); margin-bottom:8px; letter-spacing:.06em;}
+
+/* ============ SYNC DOT ============ */
+#syncDot{
+  position:fixed; bottom:20px; right:20px; z-index:199;
+  display:flex; align-items:center; gap:7px; background:var(--panel-2); border:1px solid var(--line);
+  padding:7px 12px; border-radius:999px; font-size:11px; color:var(--muted); font-family:var(--ff-mono);
+  opacity:0; transform:translateY(8px); transition:.2s; pointer-events:none;
+}
+#syncDot.show{opacity:1; transform:translateY(0);}
+#syncDot .dot{width:7px; height:7px; border-radius:50%; background:var(--red); animation:syncPulse 1s ease-in-out infinite;}
+@keyframes syncPulse{0%,100%{opacity:.4;} 50%{opacity:1;}}
 
 /* ============ RESPONSIVE NAV ============ */
 @media (max-width:480px){
@@ -512,7 +569,31 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   </div>
 </div>
 
+<div id="exerciseModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="exModalTitle">Exercise</h3><button class="modal-close" data-close-modal>&times;</button></div>
+    <div class="modal-img-wrap" id="exModalImgWrap"></div>
+    <div class="modal-body">
+      <span class="modal-tag" id="exModalGroup">GROUP</span>
+      <div class="modal-meta-row">
+        <div class="mm">Target sets <b id="exModalSets">3</b></div>
+        <div class="mm">Reps <b id="exModalReps">12-15</b></div>
+      </div>
+      <div class="howto-label" style="margin-top:14px;">How to perform it</div>
+      <p id="exModalHowTo">—</p>
+    </div>
+  </div>
+</div>
+
+<div id="dayModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="dayModalTitle">Day</h3><button class="modal-close" data-close-modal>&times;</button></div>
+    <div class="modal-body" id="dayModalBody"></div>
+  </div>
+</div>
+
 <div id="loader" class="loader hidden"><div class="spinner"></div></div>
+<div id="syncDot"><div class="dot"></div>Syncing…</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -539,59 +620,59 @@ const DAYS_ORDER = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY
 /* ---- DEFAULT WORKOUT PLAN ---- */
 const DEFAULT_PLAN = {
   MONDAY: [
-    { groupName:'BACK', exerciseName:'Lat Pulldown', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Low Row', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Incline Row (Upper)', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Shrugs (Lean Forward)', sets:3, reps:'12-15' },
-    { groupName:'BICEPS', exerciseName:'Hammer Curls', sets:3, reps:'12-15' },
-    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15' },
+    { groupName:'BACK', exerciseName:'Lat Pulldown', sets:3, reps:'12-15', muscle:'back', howTo:'Grip the bar wide, lean back slightly, and pull it down to your upper chest by driving your elbows toward your hips. Squeeze your back, then let the bar rise under control.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Low Row', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Incline Row (Upper)', sets:3, reps:'12-15', muscle:'back', howTo:'Chest supported on the incline bench, pull the dumbbells or handles up toward your ribs, leading with your elbows and squeezing your upper back at the top.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Shrugs (Lean Forward)', sets:3, reps:'12-15', muscle:'back', howTo:'Hold the weight with a slight forward lean, then lift your shoulders straight up toward your ears. Hold briefly at the top and lower with control — no rolling.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Hammer Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Hold dumbbells with a neutral (palms-in) grip and curl straight up without swinging your elbows. Lower slowly to full extension.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:'' },
   ],
   TUESDAY: [
-    { groupName:'CHEST', exerciseName:'Incline Dumbbell Press', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Seated Incline Press (Machine)', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Decline Dumbbell Press', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Incline Fly (Upper Chest)', sets:3, reps:'12-15' },
-    { groupName:'TRICEPS', exerciseName:'Straight Bar / Rope Tricep Pushdown', sets:3, reps:'12-15' },
-    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15' },
+    { groupName:'CHEST', exerciseName:'Incline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On an incline bench, press the dumbbells up and slightly inward until your arms are extended. Lower until you feel a stretch across your upper chest.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Seated Incline Press (Machine)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set the seat so handles align with your upper chest. Press forward and up, then return slowly without letting the weight slam.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Decline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On a decline bench, press the dumbbells up over your lower chest, keeping wrists stacked over elbows, then lower with control.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Incline Fly (Upper Chest)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight bend in your elbows, open your arms wide in an arc, feeling a stretch in your upper chest, then bring the dumbbells back together over your chest.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Straight Bar / Rope Tricep Push Down', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar or rope down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:'' },
   ],
   WEDNESDAY: [
-    { groupName:'SHOULDERS', exerciseName:'Shoulder Press (Dumbbell)', sets:3, reps:'12-15' },
-    { groupName:'SHOULDERS', exerciseName:'Lateral Raise (Incline Bench)', sets:3, reps:'12-15' },
-    { groupName:'SHOULDERS', exerciseName:'Reverse Pec Dec Fly', sets:3, reps:'12-15' },
-    { groupName:'SHOULDERS', exerciseName:'Cable Front Raise (Rope)', sets:3, reps:'12-15' },
-    { groupName:'LEGS', exerciseName:'Smith Machine Squats', sets:3, reps:'12-15' },
-    { groupName:'LEGS', exerciseName:'Hamstring Curls', sets:3, reps:'12-15' },
-    { groupName:'ABS', exerciseName:'Ab Crunches on Cable', sets:3, reps:'12-15' },
-    { groupName:'ABS', exerciseName:'Lying / Assisted Leg Raise', sets:3, reps:'12-15' },
-    { groupName:'ABS', exerciseName:'Russian Twists', sets:3, reps:'12-15' },
+    { groupName:'SHOULDERS', exerciseName:'Shoulder Press (Dumbbell)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Press the dumbbells overhead until your arms are nearly straight, keeping your core tight and avoiding an excessive arch in your lower back.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Lateral Raise (on an incline bench)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Lying on your side on an incline bench, raise the dumbbell out to the side with a slight elbow bend until it reaches shoulder height, then lower slowly.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Reverse Pec Dec Fly', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Facing the pad, pull the handles back and out, squeezing your rear shoulders and upper back, keeping a slight bend in your elbows throughout.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Cable Front Raise (on rope)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a straight arm, raise the rope in front of you to shoulder height, then lower with control. Avoid swinging or using momentum.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'Smith Machine Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'Hamstring Curls', sets:3, reps:'12-15', muscle:'legs', howTo:'Curl the pad toward your glutes by contracting your hamstrings, pause briefly, then lower with control without letting the weight drop.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Ab Crunches on Cable', sets:3, reps:'12-15', muscle:'abs', howTo:'Kneeling, hold the rope by your head and crunch down by rounding your spine, bringing your elbows toward your hips, then rise back slowly.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Lying Leg Raise or Assisted Leg Raise', sets:3, reps:'12-15', muscle:'abs', howTo:'Lying flat or hanging, raise your legs by curling your hips up, keeping motion controlled rather than swinging, then lower without arching your back.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Russian Twists', sets:3, reps:'12-15', muscle:'abs', howTo:'Sitting with feet slightly off the floor, rotate your torso side to side, tapping the floor or weight beside your hip each time, keeping your core braced.', imageUrl:'' },
   ],
   THURSDAY: [
-    { groupName:'BICEPS', exerciseName:'Behind the Back Bicep Curl (Incline Bench)', sets:3, reps:'12-15' },
-    { groupName:'BICEPS', exerciseName:'Seated Hammer Curl', sets:3, reps:'12-15' },
-    { groupName:'BICEPS', exerciseName:'Normal Bicep Curl (Supinate Dumbbell)', sets:3, reps:'12-15' },
-    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Seated Row (Straight Bar — Upper Back)', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Unilateral Dumbbell Rows', sets:3, reps:'12-15' },
-    { groupName:'BACK', exerciseName:'Assisted Pull Ups', sets:3, reps:'12-15' },
+    { groupName:'BICEPS', exerciseName:'Behind the Back Bicep Curl (incline bench)', sets:3, reps:'12-15', muscle:'biceps', howTo:'With the dumbbell behind your torso on an incline bench, curl it up and forward, keeping your elbow fixed, to maximize the stretch and contraction.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Seated Hammer Curl', sets:3, reps:'12-15', muscle:'biceps', howTo:'Seated with a neutral grip, curl both dumbbells up without swinging your torso, squeezing at the top before lowering slowly.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Normal Bicep Curl (supinate dumbbell while curl)', sets:3, reps:'12-15', muscle:'biceps', howTo:'Start with palms facing in, and rotate your wrists to face up as you curl the dumbbells, finishing with a full bicep squeeze at the top.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Seated Row (straight bar for upper back)', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Unilateral Dumbbell Rows', sets:3, reps:'12-15', muscle:'back', howTo:'One hand and knee on a bench, row the dumbbell up toward your hip, keeping your elbow close to your body and your back flat.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Assisted Pull Ups', sets:3, reps:'12-15', muscle:'back', howTo:'Using the assist machine or band, pull your chin above the bar by driving your elbows down, then lower yourself fully under control.', imageUrl:'' },
   ],
   FRIDAY: [
-    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15' },
-    { groupName:'TRICEPS', exerciseName:'Straight Bar Pushdown', sets:3, reps:'12-15' },
-    { groupName:'TRICEPS', exerciseName:'Kickback (Cable)', sets:3, reps:'12-15' },
-    { groupName:'TRICEPS', exerciseName:'Dips', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Flat Bench Press', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Middle Fly (Cable or Pec Dec)', sets:3, reps:'12-15' },
-    { groupName:'CHEST', exerciseName:'Lower Flys (Cable)', sets:3, reps:'12-15' },
+    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Straight Bar Pushdown', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Kick Back (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Hinge forward with your upper arm parallel to the floor, then extend your forearm straight back, squeezing your tricep at full extension.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Dips', sets:3, reps:'12-15', muscle:'triceps', howTo:'Lower your body by bending your elbows until your upper arms are roughly parallel to the floor, then press back up to full extension.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Flat Bench Press', sets:3, reps:'12-15', muscle:'chest', howTo:'Lower the bar or dumbbells to mid-chest with control, then press up and slightly together until your arms are extended.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Middle Fly (cable or pec dec)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight elbow bend, bring your hands together in front of your chest in a hugging motion, squeezing your pecs at the center.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Lower Flys (cable)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set pulleys low, bring your hands up and together in front of you in an arc, focusing the squeeze on your lower chest.', imageUrl:'' },
   ],
   SATURDAY: [
-    { groupName:'LEGS', exerciseName:'Free Squats', sets:3, reps:'12-15' },
-    { groupName:'LEGS', exerciseName:'Leg Extension', sets:3, reps:'12-15' },
-    { groupName:'LEGS', exerciseName:'RDL / Hamstring Curls (Swap Weekly)', sets:3, reps:'12-15' },
-    { groupName:'LEGS', exerciseName:'Sumo Squat', sets:3, reps:'12-15' },
-    { groupName:'SHOULDERS', exerciseName:'Lateral Raise', sets:3, reps:'12-15' },
-    { groupName:'SHOULDERS', exerciseName:'Face Pull or Pec Dec Flys', sets:3, reps:'12-15' },
-    { groupName:'ABS', exerciseName:'Ab Crunches on Decline Bench', sets:3, reps:'12-15' },
-    { groupName:'ABS', exerciseName:'Plank', sets:3, reps:'60s hold' },
+    { groupName:'LEGS', exerciseName:'Free Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'Leg Extension', sets:3, reps:'12-15', muscle:'legs', howTo:'Extend your legs fully against the pad by contracting your quads, pause briefly at the top, then lower with control.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'RDL / Hamstring Curls (swap each week)', sets:3, reps:'12-15', muscle:'legs', howTo:'For RDLs: hinge at your hips with a slight knee bend, lowering the weight along your legs until you feel a hamstring stretch, then drive your hips forward to stand.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'Sumo Squat', sets:3, reps:'12-15', muscle:'legs', howTo:'With a wide stance and toes turned out, squat down keeping your chest up, then push through your heels to stand, focusing on your inner thighs and glutes.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Lateral Raise', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a slight elbow bend, raise both dumbbells out to the sides until they reach shoulder height, then lower slowly without using momentum.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Face Pull or Pec Dec Flys', sets:3, reps:'12-15', muscle:'shoulders', howTo:'For face pulls: pull the rope toward your face, flaring your elbows out wide and squeezing your rear shoulders and upper back at the end.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Ab Crunches on a decline bench', sets:3, reps:'12-15', muscle:'abs', howTo:'Anchored on a decline bench, curl your torso up toward your knees by contracting your abs, then lower back down with control.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Plank', sets:3, reps:'60s hold', muscle:'abs', howTo:'Forearms on the floor, body in a straight line from head to heels, brace your core and glutes, and hold without letting your hips sag or pike up.', imageUrl:'' },
   ],
   SUNDAY: [],
 };
@@ -612,6 +693,14 @@ function todayStr(){ const d = new Date(); return d.getFullYear()+'-'+pad(d.getM
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayDayName(){ return DAYS_ORDER[ (new Date().getDay()+6) % 7 ]; }
 function showLoader(v){ document.getElementById('loader').classList.toggle('hidden', !v); }
+
+let syncDotCount = 0;
+function showSyncDot(v){
+  syncDotCount = Math.max(0, syncDotCount + (v ? 1 : -1));
+  const el = document.getElementById('syncDot');
+  if(!el) return;
+  el.classList.toggle('show', syncDotCount > 0);
+}
 function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -632,12 +721,13 @@ function toast(msg, good=false){
    FIX #2: No-API-URL check happens before showing loader so loader doesn't
    get stuck on if we throw before the finally block.
 */
-async function api(action, payload={}){
+async function api(action, payload={}, opts={}){
   if(!API_URL || API_URL.includes('PASTE_YOUR')){
     toast('Set your Apps Script URL in Settings first.');
     throw new Error('No API URL');
   }
-  showLoader(true);
+  if(!opts.silent) showLoader(true);
+  else showSyncDot(true);
   try{
     const res = await fetch(API_URL, {
       method:'POST',
@@ -662,7 +752,8 @@ async function api(action, payload={}){
     }
     return data;
   } finally {
-    showLoader(false);
+    if(!opts.silent) showLoader(false);
+    else showSyncDot(false);
   }
 }
 
@@ -867,14 +958,17 @@ function renderDashboard(day){
       const setsDoneEx = log ? Number(log.setsDone) : 0;
       const completed = isCompleted(log);
       return `
-      <div class="exercise-row ${completed?'done':''}" data-ex="${escapeAttr(ex.exerciseName)}" data-target="${ex.sets}">
+      <div class="exercise-row ${completed?'done':''}" data-ex="${escapeAttr(ex.exerciseName)}" data-group="${escapeAttr(gName)}" data-target="${ex.sets}">
         <div class="ex-check ${completed?'checked':''}" data-action="toggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <div class="ex-info">
+        <div class="ex-info" data-action="info">
           <div class="ex-name ${completed?'done':''}">${escHtml(ex.exerciseName)}</div>
           <div class="ex-meta">${ex.reps} REPS &nbsp;·&nbsp; TARGET ${ex.sets} SETS</div>
         </div>
+        <button class="info-btn" data-action="info" title="How to perform this">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>
+        </button>
         <div class="set-stepper">
           <button class="set-btn" data-action="dec">−</button>
           <span class="set-display">${setsDoneEx}/${ex.sets}</span>
@@ -913,15 +1007,101 @@ function renderDashboard(day){
   container.querySelectorAll('.exercise-row').forEach(row => {
     const exName = row.getAttribute('data-ex');
     const target = Number(row.dataset.target);
+    const groupName = row.getAttribute('data-group');
     row.querySelector('[data-action="toggle"]').onclick = () => handleToggle(row, exName, target);
     row.querySelector('[data-action="inc"]').onclick = () => handleStep(row, exName, target, 1);
     row.querySelector('[data-action="dec"]').onclick = () => handleStep(row, exName, target, -1);
+    row.querySelectorAll('[data-action="info"]').forEach(el => {
+      el.onclick = (e) => { e.stopPropagation(); openExerciseModal(day, groupName, exName); };
+    });
   });
 }
 
 function isCompleted(log){
   if(!log) return false;
   return log.completed === true || log.completed === 'TRUE' || log.completed === 'true';
+}
+
+/* ---- EXERCISE DETAIL MODAL ---- */
+const MUSCLE_ICONS = {
+  back: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><path d="M60 8c-9 0-14 6-14 13 0 5 2 9 5 12-10 3-17 11-19 22l-4 16h12l3-13c2-8 7-13 17-13s15 5 17 13l3 13h12l-4-16c-2-11-9-19-19-22 3-3 5-7 5-12 0-7-5-13-14-13z" fill="#ff1336" opacity="0.85"/></svg>`,
+  chest: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><path d="M60 18c-6-7-16-9-23-4-8 6-9 17-2 26 6 8 18 14 25 17 7-3 19-9 25-17 7-9 6-20-2-26-7-5-17-3-23 4z" fill="#ff1336" opacity="0.85"/></svg>`,
+  biceps: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><path d="M40 55c-2-10 0-22 8-30 6-6 14-8 20-5 7 3 10 11 7 19-2 6-7 10-7 16 0 5 3 8 3 8H45s-3-3-5-8z" fill="#ff1336" opacity="0.85"/></svg>`,
+  triceps: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><path d="M48 20c14-6 26 2 28 14 2 10-3 18-3 24h-13c0-6 4-11 2-18-2-7-9-11-16-9-5 1-8 5-8 5s4-12 10-16z" fill="#ff1336" opacity="0.85"/></svg>`,
+  shoulders: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><circle cx="38" cy="32" r="15" fill="#ff1336" opacity="0.85"/><circle cx="82" cy="32" r="15" fill="#ff1336" opacity="0.85"/><rect x="38" y="32" width="44" height="10" fill="#ff1336" opacity="0.5"/></svg>`,
+  legs: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><path d="M50 10h8v28l3 27h-9l-4-22-4 22h-9l3-27z" fill="#ff1336" opacity="0.85"/><path d="M62 10h8l4 28-2 27h-9l1-22-4-22z" fill="#ff1336" opacity="0.6"/></svg>`,
+  abs: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><rect x="48" y="14" width="11" height="11" rx="2" fill="#ff1336" opacity="0.85"/><rect x="61" y="14" width="11" height="11" rx="2" fill="#ff1336" opacity="0.85"/><rect x="48" y="27" width="11" height="11" rx="2" fill="#ff1336" opacity="0.7"/><rect x="61" y="27" width="11" height="11" rx="2" fill="#ff1336" opacity="0.7"/><rect x="48" y="40" width="11" height="11" rx="2" fill="#ff1336" opacity="0.55"/><rect x="61" y="40" width="11" height="11" rx="2" fill="#ff1336" opacity="0.55"/></svg>`,
+  default: `<svg viewBox="0 0 120 75" width="100%" height="100%"><rect width="120" height="75" fill="#0c0a0c"/><circle cx="60" cy="37" r="20" fill="none" stroke="#ff1336" stroke-width="3" opacity="0.7"/></svg>`,
+};
+
+function findExerciseObj(day, groupName, exerciseName){
+  const list = (state.plan[day] || []).filter(e => e.groupName === groupName);
+  return list.find(e => e.exerciseName === exerciseName) || (state.plan[day]||[]).find(e => e.exerciseName === exerciseName);
+}
+
+function openExerciseModal(day, groupName, exerciseName){
+  const ex = findExerciseObj(day, groupName, exerciseName);
+  if(!ex) return;
+  document.getElementById('exModalTitle').textContent = ex.exerciseName;
+  document.getElementById('exModalGroup').textContent = (ex.groupName || '').toUpperCase();
+  document.getElementById('exModalSets').textContent = ex.sets;
+  document.getElementById('exModalReps').textContent = ex.reps;
+  document.getElementById('exModalHowTo').textContent = ex.howTo || 'No instructions added yet for this movement. You can add a description and an image link from the plan editor.';
+  const imgWrap = document.getElementById('exModalImgWrap');
+  if(ex.imageUrl && ex.imageUrl.trim()){
+    imgWrap.innerHTML = `<img src="${escapeAttr(ex.imageUrl)}" alt="${escapeAttr(ex.exerciseName)}" onerror="this.parentElement.innerHTML = MUSCLE_ICONS['${ex.muscle || 'default'}'] || MUSCLE_ICONS.default;">`;
+  } else {
+    imgWrap.innerHTML = MUSCLE_ICONS[ex.muscle] || MUSCLE_ICONS.default;
+  }
+  openModal('exerciseModal');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('[data-close-modal]').forEach(btn => {
+  btn.onclick = () => btn.closest('.modal-overlay').classList.remove('show');
+});
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', (e) => { if(e.target === ov) ov.classList.remove('show'); });
+});
+
+/* ---- DAY DETAIL MODAL (history) ---- */
+async function openDayModal(dateStr){
+  const d = new Date(dateStr + 'T12:00:00');
+  const dayName = DAYS_ORDER[(d.getDay()+6)%7];
+  document.getElementById('dayModalTitle').textContent =
+    d.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'});
+  const body = document.getElementById('dayModalBody');
+  body.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;">Loading…</div>';
+  openModal('dayModal');
+
+  const planForDay = (state.plan[dayName] || []);
+  let logsByName = {};
+  try{
+    const res = await api('getDayLog', { date: dateStr }, { silent:true });
+    if(res.ok) res.logs.forEach(l => logsByName[l.exerciseName] = l);
+  }catch(e){ /* ignore, render plan with no completion */ }
+
+  if(planForDay.length === 0){
+    body.innerHTML = `<div style="text-align:center;color:var(--muted);padding:10px 0;">Rest day — nothing planned.</div>`;
+    return;
+  }
+
+  const doneCount = planForDay.filter(ex => isCompleted(logsByName[ex.exerciseName])).length;
+  let html = `<div style="margin-bottom:14px;color:var(--muted);font-size:12px;font-family:var(--ff-mono);">
+    ${dayName} &middot; ${doneCount}/${planForDay.length} exercises completed
+  </div>`;
+  html += planForDay.map(ex => {
+    const log = logsByName[ex.exerciseName];
+    const done = isCompleted(log);
+    const setsDoneVal = log ? Number(log.setsDone) : 0;
+    return `<div class="day-modal-row">
+      <div class="day-modal-dot ${done?'yes':'no'}"></div>
+      <div class="day-modal-name">${escHtml(ex.exerciseName)}</div>
+      <div class="day-modal-sets">${setsDoneVal}/${ex.sets} sets</div>
+    </div>`;
+  }).join('');
+  body.innerHTML = html;
 }
 
 async function handleToggle(row, exName, target){
@@ -932,7 +1112,7 @@ async function handleToggle(row, exName, target){
   // update local state immediately (FIX: sync before api call)
   state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:todayDayName() };
   refreshRing();
-  await saveLog(exName, setsDoneVal, target, newDone);
+  queueSaveLog(exName, setsDoneVal, target, newDone);
 }
 
 async function handleStep(row, exName, target, delta){
@@ -944,7 +1124,7 @@ async function handleStep(row, exName, target, delta){
   // update local state immediately
   state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:todayDayName() };
   refreshRing();
-  await saveLog(exName, cur, target, completed);
+  queueSaveLog(exName, cur, target, completed);
 }
 
 function updateRowUI(row, cur, target, completed){
@@ -954,10 +1134,30 @@ function updateRowUI(row, cur, target, completed){
   row.querySelector('.set-display').textContent = `${cur}/${target}`;
 }
 
+/* ---- DEBOUNCED BACKGROUND SAVE ----
+   Quick repeated taps on +/- (or a checkbox toggle right after) used to
+   fire one network request each, and each request popped the full-screen
+   loader — that's why tiny actions felt slow. Now: the UI updates instantly
+   (above), and we wait ~500ms after the LAST change for a given exercise
+   before actually sending it, collapsing rapid taps into a single request.
+   The request itself also runs silently (small "Syncing…" pill, no
+   full-screen blocking spinner).
+*/
+const pendingSaves = {};
+function queueSaveLog(exerciseName, setsDone, targetSets, completed){
+  if(pendingSaves[exerciseName]) clearTimeout(pendingSaves[exerciseName].timer);
+  pendingSaves[exerciseName] = {
+    timer: setTimeout(() => {
+      delete pendingSaves[exerciseName];
+      saveLog(exerciseName, setsDone, targetSets, completed);
+    }, 500)
+  };
+}
+
 async function saveLog(exerciseName, setsDone, targetSets, completed){
   const day = todayDayName();
   try{
-    const res = await api('saveExerciseLog', { date:todayStr(), day, exerciseName, setsDone, targetSets, completed });
+    const res = await api('saveExerciseLog', { date:todayStr(), day, exerciseName, setsDone, targetSets, completed }, { silent:true });
     if(!res.ok) toast('Save failed: ' + (res.error || 'Unknown error'));
   }catch(e){
     if(e.message !== 'Session expired') toast('Could not save — check your connection.');
@@ -1055,12 +1255,16 @@ function renderCalendar(days){
       else if(info.pct >= 33) lvl = 'lvl-mid';
       else if(info.pct > 0) lvl = 'lvl-low';
     }
-    cells += `<div class="cal-cell ${lvl} ${isFuture?'future':''} ${isToday?'today':''}"
-      title="${info ? info.pct+'% complete' : (isFuture ? 'Future' : 'No data')}">
+    cells += `<div class="cal-cell ${lvl} ${isFuture?'future':''} ${isToday?'today':''}" data-date="${dateStr}" data-future="${isFuture}"
+      title="${info ? info.pct+'% complete — tap for details' : (isFuture ? 'Future' : 'No data')}">
       <div class="fill"></div><div class="num">${day}</div>
     </div>`;
   }
   document.getElementById('calGrid').innerHTML = cells;
+  document.querySelectorAll('.cal-cell[data-date]').forEach(cell => {
+    if(cell.dataset.future === 'true') return;
+    cell.onclick = () => openDayModal(cell.dataset.date);
+  });
 }
 
 /* ---- PLAN VIEW ---- */
@@ -1090,17 +1294,24 @@ function renderPlanView(){
           html += `<div class="plan-section-label">${escHtml(curGroup)}</div>`;
         }
         const done = isToday && isCompleted(state.todayLogs[ex.exerciseName]);
-        html += `<div class="exercise-row ${done?'done':''}">
+        html += `<div class="exercise-row ${done?'done':''}" data-ex="${escapeAttr(ex.exerciseName)}" data-group="${escapeAttr(ex.groupName)}" data-day="${day}">
           <div class="ex-info">
             <div class="ex-name ${done?'done':''}">${escHtml(ex.exerciseName)}</div>
             <div class="ex-meta">${ex.sets} sets · ${ex.reps} reps</div>
           </div>
+          <button class="info-btn" data-action="plan-info" title="How to perform this">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>
+          </button>
         </div>`;
       });
     }
     html += `</div>`;
   });
   container.innerHTML = html;
+  container.querySelectorAll('[data-action="plan-info"]').forEach(btn => {
+    const row = btn.closest('.exercise-row');
+    btn.onclick = () => openExerciseModal(row.dataset.day, row.dataset.group, row.dataset.ex);
+  });
 }
 
 /* ---- PLAN EDITOR ---- */
@@ -1135,6 +1346,15 @@ function renderPlanEditor(){
           <div><div class="mini-lbl">Sets</div><input type="number" min="1" max="10" data-field="sets" value="${escapeAttr(ex.sets||3)}" placeholder="3"></div>
           <div><div class="mini-lbl">Reps</div><input type="text" data-field="reps" value="${escapeAttr(ex.reps||'12-15')}" placeholder="12-15"></div>
           <button class="row-del" data-action="del-row" title="Remove exercise">&times;</button>
+        </div>
+        <div class="edit-row" data-idx="${idx}" style="grid-template-columns:1fr 2fr 2fr;">
+          <div><div class="mini-lbl">Muscle (icon)</div>
+            <select data-field="muscle" style="width:100%;background:var(--black);border:1px solid var(--line);color:var(--text);padding:8px 10px;border-radius:8px;font-size:12.5px;">
+              ${['back','chest','biceps','triceps','shoulders','legs','abs'].map(m=>`<option value="${m}" ${ex.muscle===m?'selected':''}>${m}</option>`).join('')}
+            </select>
+          </div>
+          <div><div class="mini-lbl">How to perform (shown in info popup)</div><input type="text" data-field="howTo" value="${escapeAttr(ex.howTo||'')}" placeholder="Form cue / instructions"></div>
+          <div><div class="mini-lbl">Image / GIF URL (optional)</div><input type="text" data-field="imageUrl" value="${escapeAttr(ex.imageUrl||'')}" placeholder="https://..."></div>
         </div>`;
       });
     }
@@ -1150,13 +1370,14 @@ function renderPlanEditor(){
     const day = card.dataset.day;
     card.querySelectorAll('.edit-row').forEach(row => {
       const idx = Number(row.dataset.idx);
-      row.querySelectorAll('input').forEach(input => {
+      row.querySelectorAll('input, select').forEach(input => {
         input.oninput = () => {
           const field = input.dataset.field;
           state.planDraft[day][idx][field] = field === 'sets' ? Number(input.value||3) : input.value;
         };
       });
-      row.querySelector('[data-action="del-row"]').onclick = () => {
+      const delBtn = row.querySelector('[data-action="del-row"]');
+      if(delBtn) delBtn.onclick = () => {
         state.planDraft[day].splice(idx, 1);
         renderPlanEditor();
       };
@@ -1164,7 +1385,8 @@ function renderPlanEditor(){
     card.querySelector('[data-action="add-row"]').onclick = () => {
       const list = state.planDraft[day];
       const lastGroup = list.length ? list[list.length-1].groupName : 'GROUP';
-      list.push({ groupName: lastGroup, exerciseName: '', sets: 3, reps: '12-15' });
+      const lastMuscle = list.length ? list[list.length-1].muscle : 'back';
+      list.push({ groupName: lastGroup, exerciseName: '', sets: 3, reps: '12-15', muscle: lastMuscle || 'back', howTo: '', imageUrl: '' });
       renderPlanEditor();
     };
   });
@@ -1185,7 +1407,10 @@ async function savePlanChanges(){
         groupName: (ex.groupName||'GROUP').trim() || 'GROUP',
         exerciseName: ex.exerciseName.trim(),
         sets: Math.max(1, Number(ex.sets)||3),
-        reps: String(ex.reps||'12-15').trim() || '12-15'
+        reps: String(ex.reps||'12-15').trim() || '12-15',
+        muscle: (ex.muscle||'back').trim() || 'back',
+        howTo: String(ex.howTo||'').trim(),
+        imageUrl: String(ex.imageUrl||'').trim()
       }));
   });
   try{
