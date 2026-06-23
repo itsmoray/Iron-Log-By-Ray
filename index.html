@@ -26,11 +26,15 @@
   --ff-display: 'Orbitron', sans-serif;
   --ff-body: 'Inter', sans-serif;
   --ff-mono: 'JetBrains Mono', monospace;
+  --ease: cubic-bezier(.22,1,.36,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
 }
+html{scroll-behavior:smooth;}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{
   background: radial-gradient(1200px 600px at 50% -10%, rgba(255,19,54,.10), transparent 60%), var(--black);
+  background-attachment:fixed;
   color:var(--text);
   font-family:var(--ff-body);
   min-height:100vh;
@@ -45,6 +49,29 @@ button{font-family:inherit;}
 a{color:inherit;}
 .hidden{display:none !important;}
 
+/* ============ MOTION SYSTEM ============
+   .reveal elements fade/rise into place the first time they cross into the
+   viewport (set up via IntersectionObserver in JS — see revealOnScroll()).
+   .view-anim plays once whenever a tab/section becomes active.
+   Everything funnels through --ease so the whole app moves consistently. */
+.reveal{
+  opacity:0; transform:translateY(16px);
+  transition: opacity .55s var(--ease), transform .55s var(--ease);
+}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+@keyframes viewIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+.view-anim{animation: viewIn .42s var(--ease) both;}
+
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *, *::before, *::after{
+    animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+  .reveal{opacity:1; transform:none;}
+}
+
 /* ============ LAYOUT SHELL ============ */
 #app{min-height:100vh; display:flex; flex-direction:column;}
 
@@ -55,7 +82,9 @@ a{color:inherit;}
   position:sticky; top:0; z-index:20;
   background:rgba(7,6,8,.92); backdrop-filter: blur(12px);
   gap:8px;
+  transition: box-shadow .3s var(--ease), border-color .3s var(--ease);
 }
+.topbar.scrolled{box-shadow:0 12px 30px rgba(0,0,0,.45); border-color:var(--line);}
 .brand{display:flex; align-items:center; gap:8px; flex-shrink:0;}
 .brand .mark{width:28px;height:28px; position:relative; flex:none;}
 .brand .mark svg{width:100%;height:100%;}
@@ -72,19 +101,22 @@ a{color:inherit;}
 .nav-tabs button{
   border:none; background:transparent; color:var(--muted); padding:7px 13px; border-radius:999px;
   font-size:11px; font-weight:700; letter-spacing:.05em; cursor:pointer; text-transform:uppercase;
-  transition:.2s; white-space:nowrap; flex-shrink:0;
+  transition: color .2s var(--ease), background .25s var(--ease), box-shadow .25s var(--ease), transform .15s var(--ease);
+  white-space:nowrap; flex-shrink:0;
 }
 .nav-tabs button.active{background:var(--red); color:#fff; box-shadow:0 0 18px var(--red-glow);}
 .nav-tabs button:not(.active):hover{color:var(--text);}
+.nav-tabs button:active{transform:scale(.93);}
 .topbar-right{display:flex; align-items:center; gap:8px; flex-shrink:0;}
 .user-chip{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); white-space:nowrap;}
 .user-chip b{color:var(--text); font-weight:700;}
 .icon-btn{
   background:var(--panel); border:1px solid var(--line); color:var(--muted);
   width:34px;height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:.2s; font-size:16px; flex-shrink:0;
+  cursor:pointer; transition: color .2s var(--ease), border-color .2s var(--ease), transform .15s var(--ease); font-size:16px; flex-shrink:0;
 }
 .icon-btn:hover{color:var(--red); border-color:var(--red-deep);}
+.icon-btn:active{transform:scale(.9);}
 
 main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 
@@ -99,6 +131,11 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
     radial-gradient(700px 400px at 15% 20%, rgba(255,19,54,.16), transparent 60%),
     radial-gradient(600px 500px at 85% 80%, rgba(140,10,31,.18), transparent 60%);
   pointer-events:none;
+  animation: authGlowDrift 14s ease-in-out infinite alternate;
+}
+@keyframes authGlowDrift{
+  0%{ background-position: 0% 0%, 0% 0%; }
+  100%{ background-position: 4% 3%, -3% -4%; }
 }
 .auth-grid-lines{
   position:absolute; inset:0; opacity:.25; pointer-events:none;
@@ -112,6 +149,11 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   position:relative; z-index:1;
   width:100%; max-width:420px; background:var(--panel); border:1px solid var(--line);
   border-radius:20px; padding:36px 28px; box-shadow:0 30px 80px rgba(0,0,0,.6);
+  animation: authCardIn .6s var(--ease) both;
+}
+@keyframes authCardIn{
+  from{ opacity:0; transform:translateY(22px) scale(.97); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
 }
 @media(max-width:480px){.auth-card{padding:28px 18px;border-radius:16px;}}
 .auth-card .mark{width:54px; height:54px; margin:0 auto 18px;}
@@ -130,16 +172,19 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .btn{
   width:100%; padding:14px; border-radius:10px; border:none; cursor:pointer;
   font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:.08em;
-  transition:.2s; font-family:var(--ff-display);
+  transition: transform .15s var(--ease), filter .2s var(--ease), box-shadow .25s var(--ease), background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);
+  font-family:var(--ff-display);
 }
 .btn-primary{background:var(--red); color:#fff; box-shadow:0 8px 24px var(--red-glow);}
 .btn-primary:hover{filter:brightness(1.1); transform:translateY(-1px);}
-.btn-primary:active{transform:translateY(0);}
+.btn-primary:active{transform:translateY(0) scale(.97);}
 .btn-primary:disabled{opacity:.5; cursor:not-allowed; transform:none; filter:none;}
 .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--text);}
 .btn-ghost:hover{border-color:var(--red-deep); color:var(--red);}
+.btn-ghost:active{transform:scale(.97);}
 .btn-danger{background:rgba(255,19,54,.12); border:1px solid var(--red-deep); color:#ff8a98;}
 .btn-danger:hover{background:rgba(255,19,54,.22);}
+.btn-danger:active{transform:scale(.97);}
 .auth-switch{text-align:center; margin-top:18px; font-size:13px; color:var(--muted);}
 .auth-switch button{background:none; border:none; color:var(--red); font-weight:700; cursor:pointer; font-size:13px;}
 .auth-error{
@@ -164,6 +209,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .ring-card{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px;
   display:flex; flex-direction:column; align-items:center; gap:14px; position:sticky; top:70px;
+  transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
 }
 @media (max-width:860px){
   .ring-card{position:static; flex-direction:row; flex-wrap:wrap; justify-content:center; gap:12px; padding:16px;}
@@ -172,14 +218,15 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 @media (max-width:860px){.ring-wrap{width:130px;height:130px;}}
 .ring-wrap svg{width:100%; height:100%; transform:rotate(-90deg);}
 .ring-bg{fill:none; stroke:var(--line); stroke-width:10;}
-.ring-fg{fill:none; stroke:var(--red); stroke-width:10; stroke-linecap:round; filter:drop-shadow(0 0 8px var(--red-glow)); transition: stroke-dashoffset .6s ease;}
+.ring-fg{fill:none; stroke:var(--red); stroke-width:10; stroke-linecap:round; filter:drop-shadow(0 0 8px var(--red-glow)); transition: stroke-dashoffset .8s var(--ease);}
 .ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-.ring-center .pct{font-family:var(--ff-display); font-size:30px; font-weight:900;}
+.ring-center .pct{font-family:var(--ff-display); font-size:30px; font-weight:900; transition: color .3s var(--ease);}
 .ring-center .lbl{font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:2px;}
 .ring-day{font-family:var(--ff-display); font-weight:700; font-size:12px; letter-spacing:.1em; color:var(--text);}
 .ring-stats{display:flex; gap:14px; width:100%; justify-content:center; border-top:1px solid var(--line); padding-top:12px;}
 .ring-stat{text-align:center;}
-.ring-stat .v{font-family:var(--ff-mono); font-weight:700; font-size:16px; color:var(--red);}
+.ring-stat .v{font-family:var(--ff-mono); font-weight:700; font-size:16px; color:var(--red); display:inline-block; transition: transform .25s var(--ease-spring);}
+.ring-stat .v.pulse{transform:scale(1.22);}
 .ring-stat .k{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
 
 /* session complete banner */
@@ -187,7 +234,9 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   background:linear-gradient(135deg, rgba(40,217,124,.12), rgba(40,217,124,.05));
   border:1px solid rgba(40,217,124,.3); border-radius:10px; padding:12px 16px;
   display:flex; align-items:center; gap:10px; width:100%;
+  animation: bannerIn .45s var(--ease-spring) both;
 }
+@keyframes bannerIn{ from{opacity:0; transform:translateY(8px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }
 .complete-banner .cb-icon{font-size:20px;}
 .complete-banner .cb-text{font-size:11px; color:var(--green); font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
 
@@ -198,7 +247,13 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .rest-card p{color:var(--muted); font-size:13px; line-height:1.7; margin:0;}
 
 .plan-col{display:flex; flex-direction:column; gap:12px;}
-.group-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+.group-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s var(--ease);
+}
+@media (hover:hover){
+  .group-card:hover{transform:translateY(-3px); box-shadow:0 14px 34px rgba(0,0,0,.35); border-color:#352a2e;}
+}
 .group-head{
   display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
   background:var(--panel-2); border-bottom:1px solid var(--line);
@@ -207,49 +262,55 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .group-head .count{font-family:var(--ff-mono); font-size:10px; color:var(--muted);}
 .exercise-row{
   display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line);
-  transition: background .2s;
+  transition: background .3s var(--ease);
 }
 .exercise-row:last-child{border-bottom:none;}
 .exercise-row.done{background:rgba(40,217,124,.04);}
 .ex-check{
   width:26px; height:26px; border-radius:7px; border:1.5px solid var(--line); flex:none; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; transition:.2s; background:var(--black);
+  display:flex; align-items:center; justify-content:center; transition: background .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease), transform .15s var(--ease); background:var(--black);
   -webkit-tap-highlight-color:transparent;
 }
-.ex-check.checked{background:var(--green); border-color:var(--green); box-shadow:0 0 12px var(--green-glow);}
-.ex-check svg{width:13px; height:13px; opacity:0; transition:.15s;}
+.ex-check:active{transform:scale(.88);}
+.ex-check.checked{background:var(--green); border-color:var(--green); box-shadow:0 0 12px var(--green-glow); animation: checkPop .35s var(--ease-spring);}
+@keyframes checkPop{ 0%{transform:scale(.6);} 65%{transform:scale(1.18);} 100%{transform:scale(1);} }
+.ex-check svg{width:13px; height:13px; opacity:0; transition: opacity .15s var(--ease);}
 .ex-check.checked svg{opacity:1;}
 .ex-info{flex:1; min-width:0;}
-.ex-name{font-weight:600; font-size:14px; transition:.2s; word-break:break-word;}
+.ex-name{font-weight:600; font-size:14px; transition: color .25s var(--ease); word-break:break-word;}
 .ex-name.done{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--muted-2);}
 .ex-meta{font-size:11px; color:var(--muted); font-family:var(--ff-mono); margin-top:3px;}
 .set-stepper{display:flex; align-items:center; gap:6px; flex:none;}
 .set-btn{
   width:30px; height:30px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--text);
-  cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:.15s; line-height:1;
+  cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition: border-color .15s var(--ease), color .15s var(--ease), transform .15s var(--ease); line-height:1;
   -webkit-tap-highlight-color:transparent;
 }
 .set-btn:hover{border-color:var(--red); color:var(--red);}
-.set-display{font-family:var(--ff-mono); font-size:13px; min-width:36px; text-align:center; color:var(--text);}
+.set-btn:active{transform:scale(.88);}
+.set-display{font-family:var(--ff-mono); font-size:13px; min-width:36px; text-align:center; color:var(--text); display:inline-block; transition: color .2s var(--ease), transform .2s var(--ease-spring);}
+.set-display.pulse{transform:scale(1.22); color:var(--red);}
 .info-btn{
   width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--black); color:var(--muted);
-  cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; transition:.15s;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; transition: border-color .15s var(--ease), color .15s var(--ease), transform .15s var(--ease);
   -webkit-tap-highlight-color:transparent;
 }
 .info-btn:hover{border-color:var(--red); color:var(--red);}
+.info-btn:active{transform:scale(.88);}
 
 /* ============ MODAL ============ */
 .modal-overlay{
   position:fixed; inset:0; background:rgba(5,4,6,.78); backdrop-filter:blur(6px);
   display:flex; align-items:center; justify-content:center; z-index:250; padding:20px;
-  opacity:0; pointer-events:none; transition:.2s;
+  opacity:0; pointer-events:none; transition: opacity .25s var(--ease);
 }
 .modal-overlay.show{opacity:1; pointer-events:auto;}
 .modal-card{
   background:var(--panel); border:1px solid var(--line); border-radius:18px; max-width:480px; width:100%;
-  max-height:85vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,.6); transform:translateY(14px); transition:.2s;
+  max-height:85vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,.6); transform:translateY(20px) scale(.96);
+  transition: transform .38s var(--ease-spring), opacity .25s var(--ease); opacity:0;
 }
-.modal-overlay.show .modal-card{transform:translateY(0);}
+.modal-overlay.show .modal-card{transform:translateY(0) scale(1); opacity:1;}
 .modal-head{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--line);}
 .modal-head h3{margin:0; font-family:var(--ff-display); font-size:15px; letter-spacing:.04em;}
 .modal-close{background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; padding:4px 8px; line-height:1;}
@@ -270,6 +331,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 /* day-detail modal list */
 .day-modal-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
 .day-modal-row:last-child{border-bottom:none;}
+@keyframes rowIn{ from{opacity:0; transform:translateX(-6px);} to{opacity:1; transform:translateX(0);} }
 .day-modal-dot{width:10px;height:10px;border-radius:50%; flex:none;}
 .day-modal-dot.yes{background:var(--green); box-shadow:0 0 8px rgba(40,217,124,.4);}
 .day-modal-dot.no{background:var(--line);}
@@ -283,7 +345,10 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 @media (max-width:600px){ .stats-top{grid-template-columns:repeat(2,1fr);} }
 .stat-card{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;
-  position:relative; overflow:hidden;
+  position:relative; overflow:hidden; transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+}
+@media (hover:hover){
+  .stat-card:hover{transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,.3);}
 }
 .stat-card::before{
   content:''; position:absolute; top:-30px; right:-30px;
@@ -308,12 +373,12 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   aspect-ratio:1; border-radius:6px; border:1px solid var(--line); position:relative; background:var(--black);
   display:flex; align-items:flex-start; justify-content:flex-end; padding:3px;
   font-family:var(--ff-mono); font-size:9px; color:var(--muted-2); cursor:default;
-  transition: transform .15s;
+  transition: transform .25s var(--ease-spring), border-color .25s var(--ease);
 }
-.cal-cell:not(.empty):not(.future):hover{ transform:scale(1.08); z-index:2; }
+.cal-cell:not(.empty):not(.future):hover{ transform:scale(1.1); z-index:2; border-color:var(--red-deep); }
 .cal-cell.empty{border:none; background:transparent;}
 .cal-cell.future{opacity:.3;}
-.cal-cell .fill{position:absolute; inset:0; border-radius:6px;}
+.cal-cell .fill{position:absolute; inset:0; border-radius:6px; transition: background .4s var(--ease);}
 .cal-cell .num{position:relative; z-index:1;}
 .cal-cell.lvl-0 .fill{background:transparent;}
 .cal-cell.lvl-low .fill{background:rgba(255,19,54,.18);}
@@ -328,8 +393,10 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .streak-bar{
   background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
   padding:14px 18px; margin-bottom:16px; display:flex; align-items:center; gap:12px;
+  animation: bannerIn .45s var(--ease-spring) both;
 }
-.streak-bar .fire{font-size:22px;}
+.streak-bar .fire{font-size:22px; display:inline-block; animation: flicker 2.2s ease-in-out infinite;}
+@keyframes flicker{ 0%,100%{transform:scale(1) rotate(0deg);} 50%{transform:scale(1.08) rotate(-2deg);} }
 .streak-bar .streak-text{font-family:var(--ff-display); font-size:12px; letter-spacing:.06em;}
 .streak-bar .streak-num{color:var(--red); font-size:20px; font-weight:900;}
 
@@ -381,19 +448,20 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 
 /* ============ TOAST & LOADER ============ */
 .toast{
-  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px);
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px) scale(.96);
   background:var(--panel-2); border:1px solid var(--red-deep);
   color:var(--text); padding:12px 18px; border-radius:10px; font-size:13px; z-index:200;
   box-shadow:0 10px 30px rgba(0,0,0,.5);
-  opacity:0; transition:.25s; pointer-events:none;
+  opacity:0; transition: transform .3s var(--ease-spring), opacity .25s var(--ease); pointer-events:none;
   max-width:90vw; text-align:center; white-space:nowrap;
 }
-.toast.show{transform:translateX(-50%) translateY(0); opacity:1;}
+.toast.show{transform:translateX(-50%) translateY(0) scale(1); opacity:1;}
 .toast.good{border-color:rgba(40,217,124,.4); color:var(--green);}
 .loader{
   position:fixed; inset:0; background:rgba(7,6,8,.7); display:flex; align-items:center; justify-content:center; z-index:300;
-  backdrop-filter:blur(4px);
+  backdrop-filter:blur(4px); opacity:0; pointer-events:none; transition: opacity .25s var(--ease);
 }
+.loader.show{opacity:1; pointer-events:auto;}
 .spinner{width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--red); border-radius:50%; animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
@@ -404,7 +472,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   position:fixed; bottom:20px; right:20px; z-index:199;
   display:flex; align-items:center; gap:7px; background:var(--panel-2); border:1px solid var(--line);
   padding:7px 12px; border-radius:999px; font-size:11px; color:var(--muted); font-family:var(--ff-mono);
-  opacity:0; transform:translateY(8px); transition:.2s; pointer-events:none;
+  opacity:0; transform:translateY(8px); transition: transform .25s var(--ease), opacity .25s var(--ease); pointer-events:none;
 }
 #syncDot.show{opacity:1; transform:translateY(0);}
 #syncDot .dot{width:7px; height:7px; border-radius:50%; background:var(--red); animation:syncPulse 1s ease-in-out infinite;}
@@ -485,7 +553,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 
     <main>
       <!-- DASHBOARD -->
-      <section id="view-dashboard">
+      <section id="view-dashboard" class="view-anim">
         <div class="section-head">
           <div>
             <div class="eyebrow">Today's Session</div>
@@ -592,7 +660,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   </div>
 </div>
 
-<div id="loader" class="loader hidden"><div class="spinner"></div></div>
+<div id="loader" class="loader"><div class="spinner"></div></div>
 <div id="syncDot"><div class="dot"></div>Syncing…</div>
 <div id="toast" class="toast"></div>
 
@@ -692,7 +760,7 @@ let state = {
 function todayStr(){ const d = new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayDayName(){ return DAYS_ORDER[ (new Date().getDay()+6) % 7 ]; }
-function showLoader(v){ document.getElementById('loader').classList.toggle('hidden', !v); }
+function showLoader(v){ document.getElementById('loader').classList.toggle('show', v); }
 
 let syncDotCount = 0;
 function showSyncDot(v){
@@ -713,6 +781,65 @@ function toast(msg, good=false){
   if(toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
 }
+
+/* ---- MOTION HELPERS ----
+   revealOnScroll(): finds every freshly-rendered ".reveal" element inside a
+   container and fades/rises it into place the moment it actually scrolls
+   into view, staggering each one slightly so lists cascade in rather than
+   popping all at once. Re-run after every innerHTML re-render since the
+   old observed nodes get thrown away with the markup.
+*/
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function revealOnScroll(container){
+  if(!container) return;
+  const items = container.querySelectorAll('.reveal');
+  if(reduceMotion || !('IntersectionObserver' in window)){
+    items.forEach(el => el.classList.add('in'));
+    return;
+  }
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.1, rootMargin:'0px 0px -30px 0px' });
+  items.forEach((el, i) => {
+    el.style.transitionDelay = (Math.min(i,12) * 45) + 'ms';
+    obs.observe(el);
+  });
+}
+
+// Briefly scales a value up then back down — used whenever a stat number changes
+// (sets done, ring stats) so the update feels alive instead of just snapping.
+function pulseValue(el){
+  if(!el || reduceMotion) return;
+  el.classList.remove('pulse');
+  void el.offsetWidth; // restart animation if it's already mid-pulse
+  el.classList.add('pulse');
+  setTimeout(() => el.classList.remove('pulse'), 260);
+}
+
+// Animates a percentage readout counting up from its current value to `to`.
+function animatePct(el, to, duration=650){
+  if(!el) return;
+  if(reduceMotion){ el.textContent = to + '%'; return; }
+  const from = parseInt(el.textContent, 10) || 0;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out-cubic
+    el.textContent = Math.round(from + (to - from) * eased) + '%';
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Topbar gains a subtle shadow once the page has scrolled, for depth.
+window.addEventListener('scroll', () => {
+  document.querySelector('.topbar')?.classList.toggle('scrolled', window.scrollY > 4);
+}, { passive:true });
 
 /* ---- API ----
    FIX #1: Google Apps Script sometimes responds with a non-JSON HTML page
@@ -850,6 +977,12 @@ function switchView(view){
   ['dashboard','stats','plan','settings'].forEach(v => {
     document.getElementById('view-'+v).classList.toggle('hidden', v !== view);
   });
+  // Retrigger the entrance animation on whichever section just became visible
+  const activeSection = document.getElementById('view-'+view);
+  activeSection.classList.remove('view-anim');
+  void activeSection.offsetWidth; // force reflow so the animation restarts
+  activeSection.classList.add('view-anim');
+
   if(view === 'stats') loadStats();
   if(view === 'plan'){
     state.planEditMode=false; state.planDraft=null;
@@ -884,26 +1017,25 @@ async function enterApp(){
 }
 
 async function loadPlanAndToday(){
-  const planRes = await api('getPlan', {});
-  if(!planRes.ok) throw new Error(planRes.error || 'Could not load plan');
+  const boot = await api('bootstrap', { date: todayStr() });
+  if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
 
   // FIX #3: If server returns null plan (new user), use DEFAULT_PLAN and save it
-  if(planRes.plan === null){
+  if(boot.plan === null || boot.usedDefault){
     state.plan = DEFAULT_PLAN;
     // Save default plan silently so it persists for this user
     api('savePlan', { plan: DEFAULT_PLAN }).catch(()=>{});
   } else {
-    state.plan = planRes.plan;
+    state.plan = boot.plan;
   }
 
   const day = todayDayName();
   document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
   document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
 
-  const logRes = await api('getDayLog', { date: todayStr() });
   state.todayLogs = {};
-  if(logRes.ok && logRes.logs){
-    logRes.logs.forEach(l => { state.todayLogs[l.exerciseName] = l; });
+  if(boot.logs){
+    boot.logs.forEach(l => { state.todayLogs[l.exerciseName] = l; });
   }
   renderDashboard(day);
 }
@@ -915,17 +1047,18 @@ function renderDashboard(day){
 
   if(groups.length === 0){
     container.innerHTML = `
-      <div class="ring-card">
+      <div class="ring-card reveal">
         <div style="font-size:48px;margin:8px 0;">😴</div>
         <div class="ring-day" style="font-size:16px;">REST DAY</div>
         <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6;margin-top:4px;">
           Recovery is part of the program.<br>Rest well, come back stronger.
         </div>
       </div>
-      <div class="rest-card">
+      <div class="rest-card reveal">
         <div class="big">No session today</div>
         <p>Sunday is your rest day. Use it to hydrate, stretch, and let your muscles recover. See you Monday for Back &amp; Biceps.</p>
       </div>`;
+    revealOnScroll(container);
     return;
   }
 
@@ -976,21 +1109,21 @@ function renderDashboard(day){
         </div>
       </div>`;
     }).join('');
-    return `<div class="group-card">
+    return `<div class="group-card reveal">
       <div class="group-head"><h3>${escHtml(gName)}</h3><span class="count">${exs.length} MOVEMENTS</span></div>
       ${rows}
     </div>`;
   }).join('');
 
   container.innerHTML = `
-    <div class="ring-card">
+    <div class="ring-card reveal">
       <div class="ring-wrap">
         <svg viewBox="0 0 160 160">
           <circle class="ring-bg" cx="80" cy="80" r="${R}"></circle>
-          <circle class="ring-fg" cx="80" cy="80" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${offset}"></circle>
+          <circle class="ring-fg" cx="80" cy="80" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C}"></circle>
         </svg>
         <div class="ring-center">
-          <div class="pct">${pct}%</div>
+          <div class="pct">0%</div>
           <div class="lbl">Complete</div>
         </div>
       </div>
@@ -1003,6 +1136,17 @@ function renderDashboard(day){
     </div>
     <div class="plan-col">${groupsHtml}</div>
   `;
+
+  // Animate the progress ring filling up from empty and the percentage counting up,
+  // instead of just snapping straight to the final state.
+  const ringFgEl = container.querySelector('.ring-fg');
+  const pctEl = container.querySelector('.ring-center .pct');
+  requestAnimationFrame(() => {
+    if(ringFgEl) ringFgEl.setAttribute('stroke-dashoffset', offset);
+    animatePct(pctEl, pct);
+  });
+
+  revealOnScroll(container);
 
   container.querySelectorAll('.exercise-row').forEach(row => {
     const exName = row.getAttribute('data-ex');
@@ -1091,11 +1235,11 @@ async function openDayModal(dateStr){
   let html = `<div style="margin-bottom:14px;color:var(--muted);font-size:12px;font-family:var(--ff-mono);">
     ${dayName} &middot; ${doneCount}/${planForDay.length} exercises completed
   </div>`;
-  html += planForDay.map(ex => {
+  html += planForDay.map((ex, i) => {
     const log = logsByName[ex.exerciseName];
     const done = isCompleted(log);
     const setsDoneVal = log ? Number(log.setsDone) : 0;
-    return `<div class="day-modal-row">
+    return `<div class="day-modal-row" style="animation: rowIn .35s var(--ease) both; animation-delay:${Math.min(i,10)*35}ms;">
       <div class="day-modal-dot ${done?'yes':'no'}"></div>
       <div class="day-modal-name">${escHtml(ex.exerciseName)}</div>
       <div class="day-modal-sets">${setsDoneVal}/${ex.sets} sets</div>
@@ -1131,7 +1275,9 @@ function updateRowUI(row, cur, target, completed){
   row.classList.toggle('done', completed);
   row.querySelector('.ex-check').classList.toggle('checked', completed);
   row.querySelector('.ex-name').classList.toggle('done', completed);
-  row.querySelector('.set-display').textContent = `${cur}/${target}`;
+  const display = row.querySelector('.set-display');
+  display.textContent = `${cur}/${target}`;
+  pulseValue(display);
 }
 
 /* ---- DEBOUNCED BACKGROUND SAVE ----
@@ -1177,10 +1323,16 @@ function refreshRing(){
   const ringFg = document.querySelector('.ring-fg');
   if(ringFg) ringFg.setAttribute('stroke-dashoffset', offset);
   const pctEl = document.querySelector('.ring-center .pct');
-  if(pctEl) pctEl.textContent = pct+'%';
+  animatePct(pctEl, pct);
   const sv = document.querySelectorAll('.ring-stat .v');
-  if(sv[0]) sv[0].textContent = `${doneEx}/${totalEx}`;
-  if(sv[1]) sv[1].textContent = `${setsDone}/${totalSets}`;
+  if(sv[0]){
+    const next = `${doneEx}/${totalEx}`;
+    if(sv[0].textContent !== next){ sv[0].textContent = next; pulseValue(sv[0]); }
+  }
+  if(sv[1]){
+    const next = `${setsDone}/${totalSets}`;
+    if(sv[1].textContent !== next){ sv[1].textContent = next; pulseValue(sv[1]); }
+  }
   // show complete banner dynamically
   const ringCard = document.querySelector('.ring-card');
   if(ringCard && pct === 100 && !ringCard.querySelector('.complete-banner')){
@@ -1227,8 +1379,9 @@ function renderStatsTop(s){
     { v: s.totalSets || 0, k: 'Total sets' },
   ];
   document.getElementById('statsTop').innerHTML = cards.map(c => `
-    <div class="stat-card"><div class="v">${c.v}</div><div class="k">${c.k}</div></div>
+    <div class="stat-card reveal"><div class="v">${c.v}</div><div class="k">${c.k}</div></div>
   `).join('');
+  revealOnScroll(document.getElementById('statsTop'));
 }
 
 function renderCalendar(days){
@@ -1255,12 +1408,13 @@ function renderCalendar(days){
       else if(info.pct >= 33) lvl = 'lvl-mid';
       else if(info.pct > 0) lvl = 'lvl-low';
     }
-    cells += `<div class="cal-cell ${lvl} ${isFuture?'future':''} ${isToday?'today':''}" data-date="${dateStr}" data-future="${isFuture}"
+    cells += `<div class="cal-cell reveal ${lvl} ${isFuture?'future':''} ${isToday?'today':''}" data-date="${dateStr}" data-future="${isFuture}"
       title="${info ? info.pct+'% complete — tap for details' : (isFuture ? 'Future' : 'No data')}">
       <div class="fill"></div><div class="num">${day}</div>
     </div>`;
   }
   document.getElementById('calGrid').innerHTML = cells;
+  revealOnScroll(document.getElementById('calGrid'));
   document.querySelectorAll('.cal-cell[data-date]').forEach(cell => {
     if(cell.dataset.future === 'true') return;
     cell.onclick = () => openDayModal(cell.dataset.date);
@@ -1279,7 +1433,7 @@ function renderPlanView(){
     const isToday = day === todayDay;
     const doneToday = isToday ? items.filter(ex => isCompleted(state.todayLogs[ex.exerciseName])).length : null;
 
-    html += `<div class="group-card" style="margin-bottom:12px; ${isToday ? 'border-color:var(--red-deep);' : ''}">
+    html += `<div class="group-card reveal" style="margin-bottom:12px; ${isToday ? 'border-color:var(--red-deep);' : ''}">
       <div class="group-head">
         <h3>${day}${isToday ? ' <span style="color:var(--amber);font-size:9px;"> · TODAY</span>' : ''}</h3>
         <span class="count">${items.length ? items.length+' MOVEMENTS' : 'REST DAY'}${isToday && items.length ? ' · '+doneToday+'/'+items.length+' DONE' : ''}</span>
@@ -1308,6 +1462,7 @@ function renderPlanView(){
     html += `</div>`;
   });
   container.innerHTML = html;
+  revealOnScroll(container);
   container.querySelectorAll('[data-action="plan-info"]').forEach(btn => {
     const row = btn.closest('.exercise-row');
     btn.onclick = () => openExerciseModal(row.dataset.day, row.dataset.group, row.dataset.ex);
@@ -1455,10 +1610,27 @@ document.getElementById('saveApiUrl').onclick = () => {
 (async function boot(){
   if(state.token){
     try{
-      const v = await api('validateSession', {});
-      if(v && v.ok){ enterApp(); return; }
-    }catch(e){ /* token invalid or network error */ }
-    logout(true); // clear invalid token silently
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainScreen').classList.remove('hidden');
+      document.getElementById('userChipName').textContent = state.username;
+      document.getElementById('apiUrlInput').value = API_URL;
+      await loadPlanAndToday(); // bootstrap call also validates the token server-side
+      return;
+    }catch(e){
+      console.error('Boot failed:', e);
+      if(e.message === 'Session expired' || e.message === 'No API URL'){
+        logout(true); // clear invalid token silently, show login screen
+        return;
+      }
+      // Network/server error but token might still be fine — show app with default
+      // plan rather than bouncing the user back to login.
+      if(!state.plan) state.plan = DEFAULT_PLAN;
+      const day = todayDayName();
+      document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
+      document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
+      renderDashboard(day);
+      toast('Could not load data from server. Working offline.');
+    }
   }
 })();
 </script>
