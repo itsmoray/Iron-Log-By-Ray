@@ -1304,7 +1304,15 @@ function openExerciseModal(day, groupName, exerciseName){
   document.getElementById('exModalHowTo').textContent = ex.howTo || 'No instructions added yet for this movement. You can add a description and an image link from the plan editor.';
   const imgWrap = document.getElementById('exModalImgWrap');
   if(ex.imageUrl && ex.imageUrl.trim()){
-    imgWrap.innerHTML = `<img src="${escapeAttr(ex.imageUrl)}" alt="${escapeAttr(ex.exerciseName)}" onerror="this.parentElement.innerHTML = MUSCLE_ICONS['${ex.muscle || 'default'}'] || MUSCLE_ICONS.default;">`;
+    imgWrap.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = ex.imageUrl.trim();
+    img.alt = ex.exerciseName;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    img.onerror = () => {
+      imgWrap.innerHTML = MUSCLE_ICONS[ex.muscle] || MUSCLE_ICONS.default;
+    };
+    imgWrap.appendChild(img);
   } else {
     imgWrap.innerHTML = MUSCLE_ICONS[ex.muscle] || MUSCLE_ICONS.default;
   }
