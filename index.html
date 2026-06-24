@@ -1676,6 +1676,7 @@ function renderPlanEditor(){
     html += `<button class="add-ex-btn" data-action="add-row">+ Add exercise</button></div>`;
   });
   html += `<div class="plan-edit-actions">
+    <button class="btn btn-ghost" id="resetPlanDefault" style="margin-right:auto;">Reset to default plan</button>
     <button class="btn btn-ghost" id="cancelPlanEdit">Cancel</button>
     <button class="btn btn-primary" id="savePlanEdit">Save plan</button>
   </div>`;
@@ -1705,6 +1706,20 @@ function renderPlanEditor(){
       renderPlanEditor();
     };
   });
+  document.getElementById('resetPlanDefault').onclick = async () => {
+    if(!confirm('This replaces your whole plan with the built-in default (correct images and instructions included) and saves it immediately. Any custom exercises you added will be lost. Continue?')) return;
+    const fresh = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+    try{
+      const res = await api('savePlan', { plan: fresh });
+      if(!res.ok){ toast(res.error || 'Could not reset plan.'); return; }
+      state.plan = fresh;
+      state.planEditMode = false;
+      state.planDraft = null;
+      document.getElementById('editPlanToggle').textContent = 'Edit plan';
+      toast('Plan reset to default!', true);
+      renderPlanView();
+    }catch(e){ if(e.message !== 'Session expired') toast('Could not reset plan.'); }
+  };
   document.getElementById('cancelPlanEdit').onclick = () => {
     state.planEditMode=false; state.planDraft=null;
     document.getElementById('editPlanToggle').textContent='Edit plan';
