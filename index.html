@@ -660,6 +660,20 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
   </div>
 </div>
 
+<div id="onboardModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-head"><h3>Welcome to IRON LOG</h3></div>
+    <div class="modal-body">
+      <p style="margin:0 0 16px; color:var(--muted); line-height:1.6;">Before we start — tell us where you're at, so we can build the right plan for you.</p>
+      <p style="margin:0 0 18px; font-weight:600;">Are you working out for the first time in your life, or coming back after a long break?</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="btn btn-primary" id="onboardBeginnerBtn">Yes — start me with a 3-day full body plan</button>
+        <button class="btn btn-ghost" id="onboardExperiencedBtn">No — I train regularly, give me the full plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="loader" class="loader"><div class="spinner"></div></div>
 <div id="syncDot"><div class="dot"></div>Syncing…</div>
 <div id="toast" class="toast"></div>
@@ -686,64 +700,123 @@ let API_URL = localStorage.getItem('ironlog_api_url') || 'https://script.google.
 const DAYS_ORDER = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
 
 /* ---- DEFAULT WORKOUT PLAN ---- */
+/* ---- EXERCISE IMAGE HOSTING ----
+   Update this once you have your GitHub repo pushed — every imageUrl below
+   is built from this single base, so changing this one line wires up every
+   exercise image at once. Expected format:
+   https://raw.githubusercontent.com/<username>/<repo>/<branch>/<folder>/ */
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/PASTE_USERNAME/PASTE_REPO/main/images/exercises/';
+
 const DEFAULT_PLAN = {
   MONDAY: [
-    { groupName:'BACK', exerciseName:'Lat Pulldown', sets:3, reps:'12-15', muscle:'back', howTo:'Grip the bar wide, lean back slightly, and pull it down to your upper chest by driving your elbows toward your hips. Squeeze your back, then let the bar rise under control.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Low Row', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Incline Row (Upper)', sets:3, reps:'12-15', muscle:'back', howTo:'Chest supported on the incline bench, pull the dumbbells or handles up toward your ribs, leading with your elbows and squeezing your upper back at the top.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Shrugs (Lean Forward)', sets:3, reps:'12-15', muscle:'back', howTo:'Hold the weight with a slight forward lean, then lift your shoulders straight up toward your ears. Hold briefly at the top and lower with control — no rolling.', imageUrl:'' },
-    { groupName:'BICEPS', exerciseName:'Hammer Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Hold dumbbells with a neutral (palms-in) grip and curl straight up without swinging your elbows. Lower slowly to full extension.', imageUrl:'' },
-    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:'' },
+    { groupName:'BACK', exerciseName:'Lat Pulldown', sets:3, reps:'12-15', muscle:'back', howTo:'Grip the bar wide, lean back slightly, and pull it down to your upper chest by driving your elbows toward your hips. Squeeze your back, then let the bar rise under control.', imageUrl:`${IMAGE_BASE_URL}LAT_PULLDOWN.png` },
+    { groupName:'BACK', exerciseName:'Low Row', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:`${IMAGE_BASE_URL}LOW_ROW.png` },
+    { groupName:'BACK', exerciseName:'Incline Row (Upper)', sets:3, reps:'12-15', muscle:'back', howTo:'Chest supported on the incline bench, pull the dumbbells or handles up toward your ribs, leading with your elbows and squeezing your upper back at the top.', imageUrl:`${IMAGE_BASE_URL}INCLINE_ROW___UPPER__.png` },
+    { groupName:'BACK', exerciseName:'Shrugs (Lean Forward)', sets:3, reps:'12-15', muscle:'back', howTo:'Hold the weight with a slight forward lean, then lift your shoulders straight up toward your ears. Hold briefly at the top and lower with control — no rolling.', imageUrl:`${IMAGE_BASE_URL}SHRUGS___LEAN_FORWARD__.png` },
+    { groupName:'BICEPS', exerciseName:'Hammer Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Hold dumbbells with a neutral (palms-in) grip and curl straight up without swinging your elbows. Lower slowly to full extension.', imageUrl:`${IMAGE_BASE_URL}HAMMER_CURLS.png` },
+    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:`${IMAGE_BASE_URL}CABLE_STRAIGHT_BAR_CURLS.png` },
   ],
   TUESDAY: [
-    { groupName:'CHEST', exerciseName:'Incline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On an incline bench, press the dumbbells up and slightly inward until your arms are extended. Lower until you feel a stretch across your upper chest.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Seated Incline Press (Machine)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set the seat so handles align with your upper chest. Press forward and up, then return slowly without letting the weight slam.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Decline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On a decline bench, press the dumbbells up over your lower chest, keeping wrists stacked over elbows, then lower with control.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Incline Fly (Upper Chest)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight bend in your elbows, open your arms wide in an arc, feeling a stretch in your upper chest, then bring the dumbbells back together over your chest.', imageUrl:'' },
-    { groupName:'TRICEPS', exerciseName:'Straight Bar / Rope Tricep Push Down', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar or rope down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:'' },
-    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:'' },
+    { groupName:'CHEST', exerciseName:'Incline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On an incline bench, press the dumbbells up and slightly inward until your arms are extended. Lower until you feel a stretch across your upper chest.', imageUrl:`${IMAGE_BASE_URL}INCLINE_DUMBBELL_PRESS.png` },
+    { groupName:'CHEST', exerciseName:'Seated Incline Press (Machine)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set the seat so handles align with your upper chest. Press forward and up, then return slowly without letting the weight slam.', imageUrl:`${IMAGE_BASE_URL}SEATED_INCLINE_PRESS___MACHINE__.png` },
+    { groupName:'CHEST', exerciseName:'Decline Dumbbell Press', sets:3, reps:'12-15', muscle:'chest', howTo:'On a decline bench, press the dumbbells up over your lower chest, keeping wrists stacked over elbows, then lower with control.', imageUrl:`${IMAGE_BASE_URL}DECLINE_DUMBBELL_PRESS.png` },
+    { groupName:'CHEST', exerciseName:'Incline Fly (Upper Chest)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight bend in your elbows, open your arms wide in an arc, feeling a stretch in your upper chest, then bring the dumbbells back together over your chest.', imageUrl:`${IMAGE_BASE_URL}INCLINE_FLY___UPPER_CHEST__.png` },
+    { groupName:'TRICEPS', exerciseName:'Straight Bar / Rope Tricep Push Down', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar or rope down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:`${IMAGE_BASE_URL}STRAIGHT_BAR_OR_ROPE_TRC_PUSH_DOWN.png` },
+    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:`${IMAGE_BASE_URL}TRICEP_EXTENSION___CABLE__.png` },
   ],
   WEDNESDAY: [
-    { groupName:'SHOULDERS', exerciseName:'Shoulder Press (Dumbbell)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Press the dumbbells overhead until your arms are nearly straight, keeping your core tight and avoiding an excessive arch in your lower back.', imageUrl:'' },
-    { groupName:'SHOULDERS', exerciseName:'Lateral Raise (on an incline bench)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Lying on your side on an incline bench, raise the dumbbell out to the side with a slight elbow bend until it reaches shoulder height, then lower slowly.', imageUrl:'' },
-    { groupName:'SHOULDERS', exerciseName:'Reverse Pec Dec Fly', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Facing the pad, pull the handles back and out, squeezing your rear shoulders and upper back, keeping a slight bend in your elbows throughout.', imageUrl:'' },
-    { groupName:'SHOULDERS', exerciseName:'Cable Front Raise (on rope)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a straight arm, raise the rope in front of you to shoulder height, then lower with control. Avoid swinging or using momentum.', imageUrl:'' },
-    { groupName:'LEGS', exerciseName:'Smith Machine Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:'' },
-    { groupName:'LEGS', exerciseName:'Hamstring Curls', sets:3, reps:'12-15', muscle:'legs', howTo:'Curl the pad toward your glutes by contracting your hamstrings, pause briefly, then lower with control without letting the weight drop.', imageUrl:'' },
-    { groupName:'ABS', exerciseName:'Ab Crunches on Cable', sets:3, reps:'12-15', muscle:'abs', howTo:'Kneeling, hold the rope by your head and crunch down by rounding your spine, bringing your elbows toward your hips, then rise back slowly.', imageUrl:'' },
-    { groupName:'ABS', exerciseName:'Lying Leg Raise or Assisted Leg Raise', sets:3, reps:'12-15', muscle:'abs', howTo:'Lying flat or hanging, raise your legs by curling your hips up, keeping motion controlled rather than swinging, then lower without arching your back.', imageUrl:'' },
-    { groupName:'ABS', exerciseName:'Russian Twists', sets:3, reps:'12-15', muscle:'abs', howTo:'Sitting with feet slightly off the floor, rotate your torso side to side, tapping the floor or weight beside your hip each time, keeping your core braced.', imageUrl:'' },
+    { groupName:'SHOULDERS', exerciseName:'Shoulder Press (Dumbbell)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Press the dumbbells overhead until your arms are nearly straight, keeping your core tight and avoiding an excessive arch in your lower back.', imageUrl:`${IMAGE_BASE_URL}SHOULDER_PRESS___DUMBBELL__.png` },
+    { groupName:'SHOULDERS', exerciseName:'Lateral Raise (on an incline bench)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Lying on your side on an incline bench, raise the dumbbell out to the side with a slight elbow bend until it reaches shoulder height, then lower slowly.', imageUrl:`${IMAGE_BASE_URL}LATERAL_RAISE___ON_AN_INCLINE_BENCH__.png` },
+    { groupName:'SHOULDERS', exerciseName:'Reverse Pec Dec Fly', sets:3, reps:'12-15', muscle:'shoulders', howTo:'Facing the pad, pull the handles back and out, squeezing your rear shoulders and upper back, keeping a slight bend in your elbows throughout.', imageUrl:`${IMAGE_BASE_URL}REVERSE_PEC_DEC_FLY.png` },
+    { groupName:'SHOULDERS', exerciseName:'Cable Front Raise (on rope)', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a straight arm, raise the rope in front of you to shoulder height, then lower with control. Avoid swinging or using momentum.', imageUrl:`${IMAGE_BASE_URL}CABLE_FRONT_RAISE___ON_ROPE__.png` },
+    { groupName:'LEGS', exerciseName:'Smith Machine Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:`${IMAGE_BASE_URL}SMITH_MACHINE_SQUATS.png` },
+    { groupName:'LEGS', exerciseName:'Hamstring Curls', sets:3, reps:'12-15', muscle:'legs', howTo:'Curl the pad toward your glutes by contracting your hamstrings, pause briefly, then lower with control without letting the weight drop.', imageUrl:`${IMAGE_BASE_URL}HAMSTRING_CURLS.png` },
+    { groupName:'ABS', exerciseName:'Ab Crunches on Cable', sets:3, reps:'12-15', muscle:'abs', howTo:'Kneeling, hold the rope by your head and crunch down by rounding your spine, bringing your elbows toward your hips, then rise back slowly.', imageUrl:`${IMAGE_BASE_URL}ABBS_CRUNCHES_ON_CABLE.png` },
+    { groupName:'ABS', exerciseName:'Lying Leg Raise or Assisted Leg Raise', sets:3, reps:'12-15', muscle:'abs', howTo:'Lying flat or hanging, raise your legs by curling your hips up, keeping motion controlled rather than swinging, then lower without arching your back.', imageUrl:`${IMAGE_BASE_URL}LYING_LEG_RISE___ASSISTED_LES_RISE.png` },
+    { groupName:'ABS', exerciseName:'Russian Twists', sets:3, reps:'12-15', muscle:'abs', howTo:'Sitting with feet slightly off the floor, rotate your torso side to side, tapping the floor or weight beside your hip each time, keeping your core braced.', imageUrl:`${IMAGE_BASE_URL}RUSSIAN_TWISTS.png` },
   ],
   THURSDAY: [
-    { groupName:'BICEPS', exerciseName:'Behind the Back Bicep Curl (incline bench)', sets:3, reps:'12-15', muscle:'biceps', howTo:'With the dumbbell behind your torso on an incline bench, curl it up and forward, keeping your elbow fixed, to maximize the stretch and contraction.', imageUrl:'' },
-    { groupName:'BICEPS', exerciseName:'Seated Hammer Curl', sets:3, reps:'12-15', muscle:'biceps', howTo:'Seated with a neutral grip, curl both dumbbells up without swinging your torso, squeezing at the top before lowering slowly.', imageUrl:'' },
-    { groupName:'BICEPS', exerciseName:'Normal Bicep Curl (supinate dumbbell while curl)', sets:3, reps:'12-15', muscle:'biceps', howTo:'Start with palms facing in, and rotate your wrists to face up as you curl the dumbbells, finishing with a full bicep squeeze at the top.', imageUrl:'' },
-    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Seated Row (straight bar for upper back)', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Unilateral Dumbbell Rows', sets:3, reps:'12-15', muscle:'back', howTo:'One hand and knee on a bench, row the dumbbell up toward your hip, keeping your elbow close to your body and your back flat.', imageUrl:'' },
-    { groupName:'BACK', exerciseName:'Assisted Pull Ups', sets:3, reps:'12-15', muscle:'back', howTo:'Using the assist machine or band, pull your chin above the bar by driving your elbows down, then lower yourself fully under control.', imageUrl:'' },
+    { groupName:'BICEPS', exerciseName:'Behind the Back Bicep Curl (incline bench)', sets:3, reps:'12-15', muscle:'biceps', howTo:'With the dumbbell behind your torso on an incline bench, curl it up and forward, keeping your elbow fixed, to maximize the stretch and contraction.', imageUrl:`${IMAGE_BASE_URL}BEHIND_THE_BACK_BICEP_CURL___INCLINE_BENCH__.png` },
+    { groupName:'BICEPS', exerciseName:'Seated Hammer Curl', sets:3, reps:'12-15', muscle:'biceps', howTo:'Seated with a neutral grip, curl both dumbbells up without swinging your torso, squeezing at the top before lowering slowly.', imageUrl:`${IMAGE_BASE_URL}SEATED_HAMMER_CURL.png` },
+    { groupName:'BICEPS', exerciseName:'Normal Bicep Curl (supinate dumbbell while curl)', sets:3, reps:'12-15', muscle:'biceps', howTo:'Start with palms facing in, and rotate your wrists to face up as you curl the dumbbells, finishing with a full bicep squeeze at the top.', imageUrl:`${IMAGE_BASE_URL}NORMAL_BICEP_CURL___SUPINATE_DUMBBELL_WHILE_CURL__.png` },
+    { groupName:'BICEPS', exerciseName:'Cable Straight Bar Curls', sets:3, reps:'12-15', muscle:'biceps', howTo:'Stand tall, elbows pinned to your sides, and curl the bar up using only your forearms. Squeeze at the top, then lower under control.', imageUrl:`${IMAGE_BASE_URL}CABLE_STRAIGHT_BAR_CURLS.png` },
+    { groupName:'BACK', exerciseName:'Seated Row (straight bar for upper back)', sets:3, reps:'12-15', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:`${IMAGE_BASE_URL}SEATED_ROW___STRAIGHT_BAR_FOR_UPPER_BACK__.png` },
+    { groupName:'BACK', exerciseName:'Unilateral Dumbbell Rows', sets:3, reps:'12-15', muscle:'back', howTo:'One hand and knee on a bench, row the dumbbell up toward your hip, keeping your elbow close to your body and your back flat.', imageUrl:`${IMAGE_BASE_URL}UNILATERAL_DUMBBELL_ROWS.png` },
+    { groupName:'BACK', exerciseName:'Assisted Pull Ups', sets:3, reps:'12-15', muscle:'back', howTo:'Using the assist machine or band, pull your chin above the bar by driving your elbows down, then lower yourself fully under control.', imageUrl:`${IMAGE_BASE_URL}ASSISTED_PULL_UPS.png` },
   ],
   FRIDAY: [
-    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:'' },
-    { groupName:'TRICEPS', exerciseName:'Straight Bar Pushdown', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:'' },
-    { groupName:'TRICEPS', exerciseName:'Kick Back (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Hinge forward with your upper arm parallel to the floor, then extend your forearm straight back, squeezing your tricep at full extension.', imageUrl:'' },
-    { groupName:'TRICEPS', exerciseName:'Dips', sets:3, reps:'12-15', muscle:'triceps', howTo:'Lower your body by bending your elbows until your upper arms are roughly parallel to the floor, then press back up to full extension.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Flat Bench Press', sets:3, reps:'12-15', muscle:'chest', howTo:'Lower the bar or dumbbells to mid-chest with control, then press up and slightly together until your arms are extended.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Middle Fly (cable or pec dec)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight elbow bend, bring your hands together in front of your chest in a hugging motion, squeezing your pecs at the center.', imageUrl:'' },
-    { groupName:'CHEST', exerciseName:'Lower Flys (cable)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set pulleys low, bring your hands up and together in front of you in an arc, focusing the squeeze on your lower chest.', imageUrl:'' },
+    { groupName:'TRICEPS', exerciseName:'Tricep Extension (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Keep your upper arm still and extend at the elbow only, fully straightening your arm before returning slowly to the start position.', imageUrl:`${IMAGE_BASE_URL}TRICEP_EXTENSION___CABLE__.png` },
+    { groupName:'TRICEPS', exerciseName:'Straight Bar Pushdown', sets:3, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:`${IMAGE_BASE_URL}STRAIGHT_BAR_PUSHDOWN.png` },
+    { groupName:'TRICEPS', exerciseName:'Kick Back (Cable)', sets:3, reps:'12-15', muscle:'triceps', howTo:'Hinge forward with your upper arm parallel to the floor, then extend your forearm straight back, squeezing your tricep at full extension.', imageUrl:`${IMAGE_BASE_URL}KICK_BACK___CABLE__.png` },
+    { groupName:'TRICEPS', exerciseName:'Dips', sets:3, reps:'12-15', muscle:'triceps', howTo:'Lower your body by bending your elbows until your upper arms are roughly parallel to the floor, then press back up to full extension.', imageUrl:`${IMAGE_BASE_URL}DIPS.png` },
+    { groupName:'CHEST', exerciseName:'Flat Bench Press', sets:3, reps:'12-15', muscle:'chest', howTo:'Lower the bar or dumbbells to mid-chest with control, then press up and slightly together until your arms are extended.', imageUrl:`${IMAGE_BASE_URL}FLAT_BENCH_PRESS.png` },
+    { groupName:'CHEST', exerciseName:'Middle Fly (cable or pec dec)', sets:3, reps:'12-15', muscle:'chest', howTo:'With a slight elbow bend, bring your hands together in front of your chest in a hugging motion, squeezing your pecs at the center.', imageUrl:`${IMAGE_BASE_URL}MIDDLE_FLY___CABLE___PEC_DEC__.png` },
+    { groupName:'CHEST', exerciseName:'Lower Flys (cable)', sets:3, reps:'12-15', muscle:'chest', howTo:'Set pulleys low, bring your hands up and together in front of you in an arc, focusing the squeeze on your lower chest.', imageUrl:`${IMAGE_BASE_URL}LOWER_FLYS___CABLE__.png` },
   ],
   SATURDAY: [
-    { groupName:'LEGS', exerciseName:'Free Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:'' },
-    { groupName:'LEGS', exerciseName:'Leg Extension', sets:3, reps:'12-15', muscle:'legs', howTo:'Extend your legs fully against the pad by contracting your quads, pause briefly at the top, then lower with control.', imageUrl:'' },
-    { groupName:'LEGS', exerciseName:'RDL / Hamstring Curls (swap each week)', sets:3, reps:'12-15', muscle:'legs', howTo:'For RDLs: hinge at your hips with a slight knee bend, lowering the weight along your legs until you feel a hamstring stretch, then drive your hips forward to stand.', imageUrl:'' },
-    { groupName:'LEGS', exerciseName:'Sumo Squat', sets:3, reps:'12-15', muscle:'legs', howTo:'With a wide stance and toes turned out, squat down keeping your chest up, then push through your heels to stand, focusing on your inner thighs and glutes.', imageUrl:'' },
-    { groupName:'SHOULDERS', exerciseName:'Lateral Raise', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a slight elbow bend, raise both dumbbells out to the sides until they reach shoulder height, then lower slowly without using momentum.', imageUrl:'' },
+    { groupName:'LEGS', exerciseName:'Free Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:`${IMAGE_BASE_URL}FREE_SQUATS.png` },
+    { groupName:'LEGS', exerciseName:'Leg Extension', sets:3, reps:'12-15', muscle:'legs', howTo:'Extend your legs fully against the pad by contracting your quads, pause briefly at the top, then lower with control.', imageUrl:`${IMAGE_BASE_URL}LEG_EXTENSION.png` },
+    { groupName:'LEGS', exerciseName:'RDL / Hamstring Curls (swap each week)', sets:3, reps:'12-15', muscle:'legs', howTo:'For RDLs: hinge at your hips with a slight knee bend, lowering the weight along your legs until you feel a hamstring stretch, then drive your hips forward to stand.', imageUrl:`${IMAGE_BASE_URL}RDL__Hamstring_Curls___SWAP_EACH_WEEK__.png` },
+    { groupName:'LEGS', exerciseName:'Sumo Squat', sets:3, reps:'12-15', muscle:'legs', howTo:'With a wide stance and toes turned out, squat down keeping your chest up, then push through your heels to stand, focusing on your inner thighs and glutes.', imageUrl:`${IMAGE_BASE_URL}SUMO_SQUAT.png` },
+    { groupName:'SHOULDERS', exerciseName:'Lateral Raise', sets:3, reps:'12-15', muscle:'shoulders', howTo:'With a slight elbow bend, raise both dumbbells out to the sides until they reach shoulder height, then lower slowly without using momentum.', imageUrl:`${IMAGE_BASE_URL}LATERAL_RAISE.png` },
     { groupName:'SHOULDERS', exerciseName:'Face Pull or Pec Dec Flys', sets:3, reps:'12-15', muscle:'shoulders', howTo:'For face pulls: pull the rope toward your face, flaring your elbows out wide and squeezing your rear shoulders and upper back at the end.', imageUrl:'' },
-    { groupName:'ABS', exerciseName:'Ab Crunches on a decline bench', sets:3, reps:'12-15', muscle:'abs', howTo:'Anchored on a decline bench, curl your torso up toward your knees by contracting your abs, then lower back down with control.', imageUrl:'' },
-    { groupName:'ABS', exerciseName:'Plank', sets:3, reps:'60s hold', muscle:'abs', howTo:'Forearms on the floor, body in a straight line from head to heels, brace your core and glutes, and hold without letting your hips sag or pike up.', imageUrl:'' },
+    { groupName:'ABS', exerciseName:'Ab Crunches on a decline bench', sets:3, reps:'12-15', muscle:'abs', howTo:'Anchored on a decline bench, curl your torso up toward your knees by contracting your abs, then lower back down with control.', imageUrl:`${IMAGE_BASE_URL}AB_Crunches_on_a_decline_Bench.png` },
+    { groupName:'ABS', exerciseName:'Plank', sets:3, reps:'60s hold', muscle:'abs', howTo:'Forearms on the floor, body in a straight line from head to heels, brace your core and glutes, and hold without letting your hips sag or pike up.', imageUrl:`${IMAGE_BASE_URL}Plank.png` },
   ],
   SUNDAY: [],
 };
+
+/* ---- BEGINNER 3-DAY FULL BODY PLAN ----
+   Shown only on a brand new user's very first login while they're getting
+   their footing. Lower volume, simpler/safer movements than the full
+   weekday program. After 3 completed full-body sessions, the app
+   automatically switches them over to the real day-by-day plan. */
+const BEGINNER_DAY_KEYS = ['BEGINNER DAY 1', 'BEGINNER DAY 2', 'BEGINNER DAY 3'];
+
+function buildBeginnerExercises(){
+  return {
+    'BEGINNER DAY 1': [
+      { groupName:'LEGS', exerciseName:'Bodyweight Squats', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width apart, sit back and down keeping your chest up, until thighs are roughly parallel to the floor, then drive back up through your heels.', imageUrl:'' },
+      { groupName:'CHEST', exerciseName:'Push Ups (knees if needed)', sets:3, reps:'8-12', muscle:'chest', howTo:'Hands slightly wider than shoulders, lower your chest toward the floor keeping your body in a straight line, then press back up. Drop to your knees if needed to keep good form.', imageUrl:'' },
+      { groupName:'BACK', exerciseName:'Assisted/Machine Lat Pulldown', sets:3, reps:'10-12', muscle:'back', howTo:'Grip the bar wide, lean back slightly, and pull it down to your upper chest by driving your elbows toward your hips. Squeeze your back, then let the bar rise under control.', imageUrl:'' },
+      { groupName:'SHOULDERS', exerciseName:'Seated Dumbbell Shoulder Press', sets:2, reps:'10-12', muscle:'shoulders', howTo:'Press the dumbbells overhead until your arms are nearly straight, keeping your core tight and avoiding an excessive arch in your lower back. Use light weight to start.', imageUrl:'' },
+      { groupName:'ABS', exerciseName:'Plank Hold', sets:3, reps:'20-30s hold', muscle:'abs', howTo:'Forearms on the floor, body in a straight line from head to heels, brace your core and glutes, and hold without letting your hips sag or pike up.', imageUrl:'' },
+    ],
+    'BEGINNER DAY 2': [
+      { groupName:'LEGS', exerciseName:'Leg Press (light)', sets:3, reps:'12-15', muscle:'legs', howTo:'Feet shoulder width on the platform, lower the weight under control until your knees reach about 90 degrees, then press back up without locking your knees hard.', imageUrl:'' },
+      { groupName:'BACK', exerciseName:'Seated Cable Row', sets:3, reps:'10-12', muscle:'back', howTo:'Sit tall, brace your core, and pull the handle to your stomach by drawing your shoulder blades together. Avoid leaning back to cheat the weight.', imageUrl:'' },
+      { groupName:'CHEST', exerciseName:'Machine Chest Press', sets:3, reps:'10-12', muscle:'chest', howTo:'Set the seat so handles align with mid-chest. Press forward until arms are extended without locking out hard, then return slowly under control.', imageUrl:'' },
+      { groupName:'BICEPS', exerciseName:'Dumbbell Bicep Curls', sets:2, reps:'10-12', muscle:'biceps', howTo:'Hold dumbbells at your sides and curl up without swinging your elbows. Lower slowly to full extension.', imageUrl:'' },
+      { groupName:'ABS', exerciseName:'Lying Leg Raises', sets:3, reps:'10-12', muscle:'abs', howTo:'Lying flat, raise your legs by curling your hips up, keeping motion controlled rather than swinging, then lower without arching your back.', imageUrl:'' },
+    ],
+    'BEGINNER DAY 3': [
+      { groupName:'LEGS', exerciseName:'Walking Lunges', sets:3, reps:'10 per leg', muscle:'legs', howTo:'Step forward into a lunge, lowering your back knee toward the floor while keeping your front shin vertical, then push through your front heel to step into the next lunge.', imageUrl:'' },
+      { groupName:'SHOULDERS', exerciseName:'Lateral Raise (light)', sets:2, reps:'12-15', muscle:'shoulders', howTo:'With a slight elbow bend, raise both dumbbells out to the sides until they reach shoulder height, then lower slowly without using momentum.', imageUrl:'' },
+      { groupName:'TRICEPS', exerciseName:'Tricep Pushdown (light)', sets:2, reps:'12-15', muscle:'triceps', howTo:'Elbows tucked to your sides, push the bar or rope down until your arms are straight, then control the weight back up without letting your elbows drift forward.', imageUrl:'' },
+      { groupName:'BACK', exerciseName:'Incline Dumbbell Row', sets:3, reps:'10-12', muscle:'back', howTo:'Chest supported on the incline bench, pull the dumbbells up toward your ribs, leading with your elbows and squeezing your upper back at the top.', imageUrl:'' },
+      { groupName:'ABS', exerciseName:'Russian Twists (light)', sets:3, reps:'12-15', muscle:'abs', howTo:'Sitting with feet slightly off the floor, rotate your torso side to side, tapping the floor or weight beside your hip each time, keeping your core braced.', imageUrl:'' },
+    ],
+  };
+}
+
+// Builds a fresh plan object for a brand new user who chose "beginner" onboarding.
+// Keeps the real weekday plan underneath (DEFAULT_PLAN) so it's ready to go the
+// moment all 3 beginner sessions are completed.
+function buildBeginnerPlan(){
+  const plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
+  Object.assign(plan, buildBeginnerExercises());
+  plan.__beginner = { active: true, day: 1, sessionsCompleted: 0 };
+  return plan;
+}
+
+// Returns the plan key for whichever day's exercises should currently be shown —
+// the active beginner day while onboarding is in progress, otherwise today's weekday.
+function getActiveDay(){
+  if(state.plan && state.plan.__beginner && state.plan.__beginner.active){
+    return 'BEGINNER DAY ' + state.plan.__beginner.day;
+  }
+  return todayDayName();
+}
 
 let state = {
   token: localStorage.getItem('ironlog_token') || null,
@@ -1008,7 +1081,7 @@ async function enterApp(){
     console.error('Failed to load plan/today data:', e);
     // Still show the app but with default plan
     if(!state.plan) state.plan = DEFAULT_PLAN;
-    const day = todayDayName();
+    const day = getActiveDay();
     document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
     renderDashboard(day);
@@ -1020,16 +1093,18 @@ async function loadPlanAndToday(){
   const boot = await api('bootstrap', { date: todayStr() });
   if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
 
-  // FIX #3: If server returns null plan (new user), use DEFAULT_PLAN and save it
   if(boot.plan === null || boot.usedDefault){
-    state.plan = DEFAULT_PLAN;
-    // Save default plan silently so it persists for this user
-    api('savePlan', { plan: DEFAULT_PLAN }).catch(()=>{});
+    // Brand new user, never saved a plan before — ask the onboarding question
+    // before deciding which plan to give them.
+    const choice = await askOnboardingQuestion();
+    state.plan = (choice === 'beginner') ? buildBeginnerPlan() : DEFAULT_PLAN;
+    // Save their starting plan silently so it persists for this user
+    api('savePlan', { plan: state.plan }).catch(()=>{});
   } else {
     state.plan = boot.plan;
   }
 
-  const day = todayDayName();
+  const day = getActiveDay();
   document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
   document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
 
@@ -1079,9 +1154,21 @@ function renderDashboard(day){
   const C = 2*Math.PI*R;
   const offset = C - (pct/100)*C;
 
+  const isBeginnerActive = !!(state.plan.__beginner && state.plan.__beginner.active);
+
   let completeBanner = '';
   if(pct === 100){
-    completeBanner = `<div class="complete-banner"><div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div></div>`;
+    if(isBeginnerActive){
+      const meta = state.plan.__beginner;
+      const isLast = meta.day >= 3;
+      completeBanner = `<div class="complete-banner">
+        <div class="cb-icon">🏆</div>
+        <div class="cb-text">${isLast ? 'Day 3 complete! You\'re ready for your full program.' : `Beginner day ${meta.day} of 3 complete!`}</div>
+        <button class="btn btn-primary" id="beginnerAdvanceBtn" style="margin-top:12px;">${isLast ? 'Start full plan' : 'Continue to day '+(meta.day+1)}</button>
+      </div>`;
+    } else {
+      completeBanner = `<div class="complete-banner"><div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div></div>`;
+    }
   }
 
   let groupsHtml = order.map(gName => {
@@ -1148,6 +1235,9 @@ function renderDashboard(day){
 
   revealOnScroll(container);
 
+  const beginnerAdvanceBtn = container.querySelector('#beginnerAdvanceBtn');
+  if(beginnerAdvanceBtn) beginnerAdvanceBtn.onclick = advanceBeginnerProgram;
+
   container.querySelectorAll('.exercise-row').forEach(row => {
     const exName = row.getAttribute('data-ex');
     const target = Number(row.dataset.target);
@@ -1164,6 +1254,26 @@ function renderDashboard(day){
 function isCompleted(log){
   if(!log) return false;
   return log.completed === true || log.completed === 'TRUE' || log.completed === 'true';
+}
+
+// Moves the user from one beginner full-body session to the next, or — once
+// all 3 are done — switches them onto the real day-by-day plan permanently.
+async function advanceBeginnerProgram(){
+  const meta = state.plan.__beginner;
+  if(!meta) return;
+  if(meta.day >= 3){
+    meta.active = false;
+    meta.sessionsCompleted = 3;
+    toast('3-day intro complete! Switching to your full training plan.', true);
+  } else {
+    meta.sessionsCompleted = meta.day;
+    meta.day += 1;
+    toast('Beginner day ' + meta.day + ' unlocked!', true);
+  }
+  await api('savePlan', { plan: state.plan }).catch(()=>{});
+  const day = getActiveDay();
+  document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
+  renderDashboard(day);
 }
 
 /* ---- EXERCISE DETAIL MODAL ---- */
@@ -1202,10 +1312,33 @@ function openExerciseModal(day, groupName, exerciseName){
 
 function openModal(id){ document.getElementById(id).classList.add('show'); }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+// Shown once, only to a brand new user on their very first login (no plan
+// row exists yet for them). Resolves to 'beginner' or 'experienced' based on
+// which button they tap. The modal has no close button / backdrop-dismiss —
+// they must make a choice to proceed.
+function askOnboardingQuestion(){
+  return new Promise((resolve) => {
+    const beginnerBtn = document.getElementById('onboardBeginnerBtn');
+    const experiencedBtn = document.getElementById('onboardExperiencedBtn');
+    const finish = (choice) => {
+      beginnerBtn.onclick = null; experiencedBtn.onclick = null;
+      closeModal('onboardModal');
+      resolve(choice);
+    };
+    beginnerBtn.onclick = () => finish('beginner');
+    experiencedBtn.onclick = () => finish('experienced');
+    openModal('onboardModal');
+  });
+}
+
 document.querySelectorAll('[data-close-modal]').forEach(btn => {
   btn.onclick = () => btn.closest('.modal-overlay').classList.remove('show');
 });
 document.querySelectorAll('.modal-overlay').forEach(ov => {
+  // onboardModal is intentionally excluded — it can't be dismissed by clicking
+  // outside it, only by answering the onboarding question.
+  if(ov.id === 'onboardModal') return;
   ov.addEventListener('click', (e) => { if(e.target === ov) ov.classList.remove('show'); });
 });
 
@@ -1254,7 +1387,7 @@ async function handleToggle(row, exName, target){
   const setsDoneVal = newDone ? target : 0;
   updateRowUI(row, setsDoneVal, target, newDone);
   // update local state immediately (FIX: sync before api call)
-  state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:todayDayName() };
+  state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:getActiveDay() };
   refreshRing();
   queueSaveLog(exName, setsDoneVal, target, newDone);
 }
@@ -1266,7 +1399,7 @@ async function handleStep(row, exName, target, delta){
   const completed = cur >= target;
   updateRowUI(row, cur, target, completed);
   // update local state immediately
-  state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:todayDayName() };
+  state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:getActiveDay() };
   refreshRing();
   queueSaveLog(exName, cur, target, completed);
 }
@@ -1301,7 +1434,7 @@ function queueSaveLog(exerciseName, setsDone, targetSets, completed){
 }
 
 async function saveLog(exerciseName, setsDone, targetSets, completed){
-  const day = todayDayName();
+  const day = getActiveDay();
   try{
     const res = await api('saveExerciseLog', { date:todayStr(), day, exerciseName, setsDone, targetSets, completed }, { silent:true });
     if(!res.ok) toast('Save failed: ' + (res.error || 'Unknown error'));
@@ -1311,7 +1444,7 @@ async function saveLog(exerciseName, setsDone, targetSets, completed){
 }
 
 function refreshRing(){
-  const day = todayDayName();
+  const day = getActiveDay();
   const groups = state.plan[day] || [];
   const totalEx = groups.length;
   const doneEx = groups.filter(ex => isCompleted(state.todayLogs[ex.exerciseName])).length;
@@ -1336,10 +1469,22 @@ function refreshRing(){
   // show complete banner dynamically
   const ringCard = document.querySelector('.ring-card');
   if(ringCard && pct === 100 && !ringCard.querySelector('.complete-banner')){
+    const isBeginnerActive = !!(state.plan.__beginner && state.plan.__beginner.active);
     const banner = document.createElement('div');
     banner.className = 'complete-banner';
-    banner.innerHTML = '<div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div>';
-    ringCard.appendChild(banner);
+    if(isBeginnerActive){
+      const meta = state.plan.__beginner;
+      const isLast = meta.day >= 3;
+      banner.innerHTML = `<div class="cb-icon">🏆</div>
+        <div class="cb-text">${isLast ? "Day 3 complete! You're ready for your full program." : `Beginner day ${meta.day} of 3 complete!`}</div>
+        <button class="btn btn-primary" id="beginnerAdvanceBtn" style="margin-top:12px;">${isLast ? 'Start full plan' : 'Continue to day '+(meta.day+1)}</button>`;
+      ringCard.appendChild(banner);
+      const btn = banner.querySelector('#beginnerAdvanceBtn');
+      if(btn) btn.onclick = advanceBeginnerProgram;
+    } else {
+      banner.innerHTML = '<div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div>';
+      ringCard.appendChild(banner);
+    }
   }
 }
 
@@ -1625,7 +1770,7 @@ document.getElementById('saveApiUrl').onclick = () => {
       // Network/server error but token might still be fine — show app with default
       // plan rather than bouncing the user back to login.
       if(!state.plan) state.plan = DEFAULT_PLAN;
-      const day = todayDayName();
+      const day = getActiveDay();
       document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
       document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
       renderDashboard(day);
