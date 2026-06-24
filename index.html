@@ -705,7 +705,7 @@ const DAYS_ORDER = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY
    is built from this single base, so changing this one line wires up every
    exercise image at once. Expected format:
    https://raw.githubusercontent.com/<username>/<repo>/<branch>/<folder>/ */
-const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/PASTE_USERNAME/PASTE_REPO/main/images/exercises/';
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/itsmoray/Iron-Log-By-Ray/main/exercise_images/';
 
 const DEFAULT_PLAN = {
   MONDAY: [
@@ -827,6 +827,7 @@ let state = {
   statsYear: new Date().getFullYear(),
   planEditMode: false,
   planDraft: null,
+  statsCache: {}, // key: "YYYY-M" -> { summary, days } from getMonthStats
 };
 
 /* ---- helpers ---- */
@@ -1437,7 +1438,11 @@ async function saveLog(exerciseName, setsDone, targetSets, completed){
   const day = getActiveDay();
   try{
     const res = await api('saveExerciseLog', { date:todayStr(), day, exerciseName, setsDone, targetSets, completed }, { silent:true });
-    if(!res.ok) toast('Save failed: ' + (res.error || 'Unknown error'));
+    if(!res.ok){ toast('Save failed: ' + (res.error || 'Unknown error')); return; }
+    // Today's log changed — drop the cached stats for this month so Stats
+    // re-fetches fresh data next time it's opened instead of showing stale numbers.
+    const now = new Date();
+    delete state.statsCache[now.getFullYear() + '-' + (now.getMonth()+1)];
   }catch(e){
     if(e.message !== 'Session expired') toast('Could not save — check your connection.');
   }
@@ -1492,9 +1497,19 @@ function refreshRing(){
 async function loadStats(){
   document.getElementById('monthLabel').textContent =
     new Date(state.statsYear, state.statsMonth-1, 1).toLocaleDateString(undefined,{month:'long', year:'numeric'});
+
+  const cacheKey = state.statsYear + '-' + state.statsMonth;
+  const cached = state.statsCache[cacheKey];
+  if(cached){
+    renderStatsTop(cached.summary);
+    renderCalendar(cached.days);
+    return;
+  }
+
   try{
     const res = await api('getMonthStats', { year: state.statsYear, month: state.statsMonth });
     if(!res.ok){ toast(res.error || 'Could not load stats.'); return; }
+    state.statsCache[cacheKey] = { summary: res.summary, days: res.days };
     renderStatsTop(res.summary);
     renderCalendar(res.days);
   }catch(e){ if(e.message !== 'Session expired') toast('Could not load stats.'); }
