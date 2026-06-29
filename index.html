@@ -963,6 +963,11 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         </div>
         <div class="motivation-line" id="motivationLine"></div>
         <div id="dashboardContent" class="dash-grid"></div>
+        <div class="session-notes-card reveal" id="sessionNotesCard" style="display:none;">
+          <h4>🗒️ Session Notes</h4>
+          <textarea class="session-notes-textarea" id="sessionNotesArea" placeholder="How did this session feel? Energy, pump, anything notable…" rows="3"></textarea>
+          <button class="session-notes-save" id="sessionNotesSaveBtn">Save note</button>
+        </div>
       </section>
 
       <!-- STATS -->
@@ -1101,6 +1106,16 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         <button class="btn btn-primary" id="onboardBeginnerBtn">Yes — start me with a 3-day full body plan</button>
         <button class="btn btn-ghost" id="onboardExperiencedBtn">No — I train regularly, give me the full plan</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="setLogModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:380px;">
+    <div class="modal-head"><h3 id="setLogModalTitle">Log Set</h3><button class="modal-close" data-close-modal>&times;</button></div>
+    <div class="modal-body">
+      <div class="set-log-list" id="setLogList"></div>
+      <button class="btn btn-primary" id="setLogSaveBtn" style="margin-top:4px;"><span class="btn-label">Save</span><span class="btn-spinner-dot"></span></button>
     </div>
   </div>
 </div>
@@ -1274,6 +1289,7 @@ let state = {
   planDraft: null,
   statsCache: {}, // key: "YYYY-M" -> { summary, days } from getMonthStats
   exerciseBests: {}, // exerciseName -> best-ever setsDone from prior days (from backend)
+  sessionNote: '', // today's session-notes textarea content, loaded from backend on boot
 };
 
 /* ---- helpers ---- */
@@ -1309,6 +1325,12 @@ function toast(msg, good=false){
 const REST_DEFAULT_SECONDS = 60;
 const restTimerState = { interval:null, seconds:0, total:REST_DEFAULT_SECONDS };
 const RT_CIRCUMFERENCE = 125.6;
+// Per-exercise rest presets
+function getExRestSecs(exName){
+  const day = getActiveDay();
+  const ex = (state.plan && state.plan[day]||[]).find(e => e.exerciseName === exName);
+  return (ex && ex.restSecs && Number(ex.restSecs) > 0) ? Number(ex.restSecs) : REST_DEFAULT_SECONDS;
+}
 
 function startRestTimer(seconds = REST_DEFAULT_SECONDS){
   clearInterval(restTimerState.interval);
@@ -1692,7 +1714,14 @@ function switchView(view){
   currentView = view;
 
   const afterDataLoads = () => {
-    if(view === 'stats') loadStats();
+    if(view === 'stats'){
+      loadStats();
+      initBodyweightTracker();
+      // bw-card and pr-history-section are static markup (not re-rendered per
+      // visit like statsTop/calGrid), so without this they'd sit at opacity:0
+      // forever — revealOnScroll() only un-hides elements it's been asked to watch.
+      revealOnScroll(document.getElementById('view-stats'));
+    }
     if(view === 'plan'){
       state.planEditMode=false; state.planDraft=null;
       document.getElementById('editPlanToggle').textContent='Edit plan';
@@ -1757,6 +1786,7 @@ async function enterApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
+  showSkeletonDashboard();
   const mark = document.querySelector('.brand .mark');
   if(mark){
     mark.classList.remove('logo-pulse');
@@ -1799,7 +1829,7 @@ function mergeWithTemplate(savedPlan){
 }
 
 async function loadPlanAndToday(){
-  const boot = await api('bootstrap', { date: todayStr() });
+  const boot = await api('bootstrap', { date: todayStr() }, { silent:true });
   if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
 
   if(boot.plan === null || boot.usedDefault){
@@ -1818,8 +1848,12 @@ async function loadPlanAndToday(){
   document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
 
   state.todayLogs = {};
+  state.sessionNote = '';
   if(boot.logs){
-    boot.logs.forEach(l => { state.todayLogs[l.exerciseName] = l; });
+    boot.logs.forEach(l => {
+      state.todayLogs[l.exerciseName] = l;
+      if(l.exerciseName === '__SESSION_NOTE__') state.sessionNote = l.note || '';
+    });
   }
   renderDashboard(day);
   loadExerciseBests(day); // async, non-blocking — PR badges light up once it resolves
@@ -1970,12 +2004,25 @@ function renderDashboard(day){
     const target = Number(row.dataset.target);
     const groupName = row.getAttribute('data-group');
     row.querySelector('[data-action="toggle"]').onclick = () => handleToggle(row, exName, target);
-    row.querySelector('[data-action="inc"]').onclick = () => handleStep(row, exName, target, 1);
+    const incBtn = row.querySelector('[data-action="inc"]');
+    incBtn.onclick = () => handleStep(row, exName, target, 1);
+    // Long-press + to complete all remaining sets at once
+    let _lpTimer = null;
+    incBtn.addEventListener('pointerdown', () => {
+      _lpTimer = setTimeout(() => {
+        const cur = parseInt(row.querySelector('.set-display').textContent.split('/')[0], 10);
+        if(cur < target){ handleStep(row, exName, target, target - cur); toast('All sets marked done!', true); }
+      }, 600);
+    });
+    incBtn.addEventListener('pointerup', () => clearTimeout(_lpTimer));
+    incBtn.addEventListener('pointercancel', () => clearTimeout(_lpTimer));
     row.querySelector('[data-action="dec"]').onclick = () => handleStep(row, exName, target, -1);
     row.querySelectorAll('[data-action="info"]').forEach(el => {
       el.onclick = (e) => { e.stopPropagation(); openExerciseModal(day, groupName, exName); };
     });
   });
+
+  initSessionNotes();
 }
 
 function isCompleted(log){
@@ -2160,6 +2207,7 @@ async function handleToggle(row, exName, target){
   // update local state immediately (FIX: sync before api call)
   state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:getActiveDay() };
   refreshRing();
+  updateSessionNotesVisibility();
   queueSaveLog(exName, setsDoneVal, target, newDone);
   if(newDone) checkPersonalRecord(row, exName, setsDoneVal);
 }
@@ -2173,10 +2221,11 @@ async function handleStep(row, exName, target, delta){
   // update local state immediately
   state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:getActiveDay() };
   refreshRing();
+  updateSessionNotesVisibility();
   queueSaveLog(exName, cur, target, completed);
   if(delta > 0 && cur > 0) checkPersonalRecord(row, exName, cur);
   // Logged a new set (not just decremented) and there's more to go — offer a rest timer.
-  if(delta > 0 && cur > 0 && !completed) startRestTimer();
+  if(delta > 0 && cur > 0 && !completed) startRestTimer(getExRestSecs(exName));
 }
 
 function updateRowUI(row, cur, target, completed){
@@ -2194,10 +2243,17 @@ function updateRowUI(row, cur, target, completed){
 // exercise gets marked fully done — makes each completed exercise feel rewarding.
 function flashRow(row){
   if(reduceMotion || !row) return;
-  row.classList.remove('flash');
+  row.classList.remove('flash','flash-strong');
   void row.offsetWidth;
-  row.classList.add('flash');
-  setTimeout(() => row.classList.remove('flash'), 650);
+  row.classList.add('flash-strong');
+  // ring ripple
+  const ring = document.querySelector('.ring-fg');
+  if(ring){
+    ring.style.transition = 'stroke-dashoffset .3s var(--ease), filter .3s var(--ease)';
+    ring.style.filter = 'drop-shadow(0 0 14px var(--green-glow)) brightness(1.3)';
+    setTimeout(()=>{ ring.style.filter=''; ring.style.transition=''; }, 500);
+  }
+  setTimeout(() => row.classList.remove('flash-strong'), 800);
 }
 
 /* ---- PERSONAL RECORDS ----
@@ -2327,31 +2383,34 @@ function refreshRing(){
   }
 }
 
-// A small, tasteful burst of 6-8 red/white particles fired from the ring
-// card the moment a workout is fully completed.
+// Confetti celebration on session complete
 function spawnCompletionBurst(){
   if(reduceMotion) return;
+  // Small ring burst
   const ringCard = document.querySelector('.ring-card');
-  if(!ringCard) return;
-  const old = ringCard.querySelector('.burst-wrap');
-  if(old) old.remove();
-  const burst = document.createElement('div');
-  burst.className = 'burst-wrap';
-  const count = 7;
-  for(let i = 0; i < count; i++){
-    const p = document.createElement('span');
-    p.className = 'burst-particle';
-    const angle = (360 / count) * i + (Math.random() * 24 - 12);
-    const dist = 55 + Math.random() * 30;
-    p.style.setProperty('--angle', angle + 'deg');
-    p.style.setProperty('--dist', dist + 'px');
-    p.style.color = i % 2 === 0 ? 'var(--red)' : '#fff';
-    p.style.background = i % 2 === 0 ? 'var(--red)' : '#fff';
-    p.style.animationDelay = (Math.random() * 70) + 'ms';
-    burst.appendChild(p);
+  if(ringCard){
+    const old = ringCard.querySelector('.burst-wrap');
+    if(old) old.remove();
+    const burst = document.createElement('div');
+    burst.className = 'burst-wrap';
+    const count = 10;
+    for(let i = 0; i < count; i++){
+      const p = document.createElement('span');
+      p.className = 'burst-particle';
+      const angle = (360/count)*i + (Math.random()*24-12);
+      const dist = 60 + Math.random()*35;
+      p.style.setProperty('--angle', angle+'deg');
+      p.style.setProperty('--dist', dist+'px');
+      p.style.color = ['var(--red)','#fff','var(--amber)'][i%3];
+      p.style.background = ['var(--red)','#fff','var(--amber)'][i%3];
+      p.style.animationDelay = (Math.random()*70)+'ms';
+      burst.appendChild(p);
+    }
+    ringCard.appendChild(burst);
+    setTimeout(() => burst.remove(), 1000);
   }
-  ringCard.appendChild(burst);
-  setTimeout(() => burst.remove(), 1000);
+  // Full-screen confetti
+  launchConfetti();
 }
 
 /* ---- STATS ---- */
@@ -2637,6 +2696,263 @@ document.getElementById('changePassBtn').onclick = async () => {
     }
   }catch(e){ if(e.message !== 'Session expired') toast('Could not update password.'); }
 };
+
+/* ---- CONFETTI ---- */
+function launchConfetti(){
+  const canvas = document.getElementById('confettiCanvas');
+  if(!canvas || reduceMotion) return;
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const pieces = Array.from({length:110}, () => ({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height - canvas.height,
+    w: 6+Math.random()*8, h: 8+Math.random()*6,
+    r: Math.random()*Math.PI*2, dr: (Math.random()-.5)*.18,
+    dx: (Math.random()-.5)*2.5, dy: 2.5+Math.random()*3.5,
+    color: ['#ff1336','#fff','#ffb020','#28d97c','#ff7a1a'][Math.floor(Math.random()*5)]
+  }));
+  let frame = 0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p => {
+      p.y += p.dy; p.x += p.dx; p.r += p.dr;
+      p.dy = Math.min(p.dy + .04, 6);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.color; ctx.globalAlpha = Math.max(0, 1 - frame/110);
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if(frame < 130) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display='none'; }
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ---- SKELETON LOADER ---- */
+function showSkeletonDashboard(){
+  const container = document.getElementById('dashboardContent');
+  if(!container) return;
+  container.innerHTML = `
+    <div class="skel-ring-card">
+      <div class="skeleton skel-circle"></div>
+      <div class="skeleton skel-line"></div>
+      <div class="skeleton skel-line-sm"></div>
+    </div>
+    <div class="plan-col">
+      <div class="skel-group">
+        <div class="skeleton skel-group-head"></div>
+        ${[0,1,2].map(()=>`<div class="skel-row"><div class="skeleton skel-check"></div><div class="skeleton skel-text"></div><div class="skeleton skel-btn"></div></div>`).join('')}
+      </div>
+      <div class="skel-group">
+        <div class="skeleton skel-group-head"></div>
+        ${[0,1].map(()=>`<div class="skel-row"><div class="skeleton skel-check"></div><div class="skeleton skel-text"></div><div class="skeleton skel-btn"></div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* ---- OFFLINE QUEUE ---- */
+const offlineQueue = [];
+let isOnline = navigator.onLine;
+function updateOfflineBanner(){
+  const banner = document.getElementById('offlineBanner');
+  const qEl = document.getElementById('offlineQueueCount');
+  if(!banner) return;
+  const show = !isOnline;
+  banner.classList.toggle('show', show);
+  if(qEl) qEl.textContent = offlineQueue.length > 0 ? offlineQueue.length + ' pending' : '';
+}
+window.addEventListener('online', () => {
+  isOnline = true;
+  updateOfflineBanner();
+  flushOfflineQueue();
+});
+window.addEventListener('offline', () => {
+  isOnline = false;
+  updateOfflineBanner();
+  toast("You're offline — changes saved locally and will sync when back.");
+});
+async function flushOfflineQueue(){
+  if(!offlineQueue.length) return;
+  const items = [...offlineQueue];
+  offlineQueue.length = 0;
+  for(const item of items){
+    try{ await api('saveExerciseLog', item, {silent:true}); }
+    catch(e){ offlineQueue.push(item); } // re-queue on failure
+  }
+  updateOfflineBanner();
+  if(!offlineQueue.length) toast('Synced!', true);
+}
+
+/* ---- SESSION NOTES ---- */
+function sessionAnyLogged(){
+  const day = getActiveDay();
+  const groups = state.plan[day] || [];
+  return groups.some(ex => state.todayLogs[ex.exerciseName]?.setsDone > 0);
+}
+function updateSessionNotesVisibility(){
+  const card = document.getElementById('sessionNotesCard');
+  if(card) card.style.display = sessionAnyLogged() ? '' : 'none';
+}
+function initSessionNotes(){
+  const card = document.getElementById('sessionNotesCard');
+  const area = document.getElementById('sessionNotesArea');
+  const btn = document.getElementById('sessionNotesSaveBtn');
+  if(!card || !area || !btn) return;
+  // Show the card once there's any workout logged today
+  updateSessionNotesVisibility();
+  if(state.sessionNote) area.value = state.sessionNote;
+  btn.onclick = async () => {
+    const note = area.value.trim();
+    state.sessionNote = note;
+    btn.classList.add('saved');
+    btn.textContent = 'Saved ✓';
+    try{
+      await api('saveExerciseLog', { date: todayStr(), day: getActiveDay(), exerciseName: '__SESSION_NOTE__', setsDone: 0, targetSets: 0, completed: false, note }, {silent:true});
+    }catch(e){}
+    setTimeout(() => { btn.classList.remove('saved'); btn.textContent = 'Save note'; }, 2000);
+  };
+}
+
+/* ---- BODYWEIGHT TRACKER ---- */
+const bwHistory = { data:[], loaded:false }; // { date, weight }[]
+async function initBodyweightTracker(){
+  const saveBtn = document.getElementById('bwSaveBtn');
+  const input = document.getElementById('bwInput');
+  if(!saveBtn || !input) return;
+
+  if(!bwHistory.loaded){
+    try{
+      const res = await api('getBodyweightHistory', {}, {silent:true});
+      if(res.ok) bwHistory.data = res.history || [];
+      bwHistory.loaded = true;
+    }catch(e){ /* offline — fall back to whatever's already in memory */ }
+    renderBWChart();
+  }
+
+  saveBtn.onclick = async () => {
+    const val = parseFloat(input.value);
+    if(!val || val < 20 || val > 300){ toast('Enter a valid weight (20–300 kg).'); return; }
+    const today = todayStr();
+    const existing = bwHistory.data.findIndex(d => d.date === today);
+    if(existing >= 0) bwHistory.data[existing].weight = val;
+    else bwHistory.data.push({date:today, weight:val});
+    bwHistory.data.sort((a,b) => a.date < b.date ? -1 : 1);
+    renderBWChart();
+    input.value = '';
+    saveBtn.disabled = true;
+    try{
+      const res = await api('saveExerciseLog', { date: today, day: getActiveDay(), exerciseName: '__BODYWEIGHT__', setsDone: val, targetSets: 0, completed: false }, {silent:true});
+      if(res.ok) toast('Weight logged!', true);
+      else { queueSaveLog('__BODYWEIGHT__', val, 0, false); toast('Saved — will sync shortly.', true); }
+    }catch(e){
+      queueSaveLog('__BODYWEIGHT__', val, 0, false);
+      toast('Saved offline — will sync when back online.', true);
+    } finally {
+      saveBtn.disabled = false;
+    }
+  };
+}
+
+function renderBWChart(){
+  const data = bwHistory.data.slice(-30); // last 30 entries
+  const currentWrap = document.getElementById('bwCurrentWrap');
+  const currentVal = document.getElementById('bwCurrentVal');
+  const deltaEl = document.getElementById('bwDelta');
+  if(currentWrap && data.length > 0){
+    currentWrap.classList.remove('hidden');
+    const latest = data[data.length-1].weight;
+    if(currentVal) currentVal.textContent = latest.toFixed(1) + ' kg';
+    if(deltaEl && data.length >= 2){
+      const prev = data[data.length-2].weight;
+      const diff = +(latest - prev).toFixed(1);
+      deltaEl.className = 'bw-delta ' + (diff > 0 ? 'up' : diff < 0 ? 'down' : '');
+      deltaEl.textContent = diff > 0 ? '▲ +' + diff + ' kg from last entry' : diff < 0 ? '▼ ' + diff + ' kg from last entry' : '→ No change';
+    } else if(deltaEl){ deltaEl.textContent = ''; }
+  } else if(currentWrap){ currentWrap.classList.add('hidden'); }
+
+  const canvas = document.getElementById('bwChart');
+  if(!canvas || data.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.clientWidth; const H = canvas.clientHeight;
+  canvas.width = W; canvas.height = H;
+  const weights = data.map(d => d.weight);
+  const minW = Math.min(...weights) - 1;
+  const maxW = Math.max(...weights) + 1;
+  const pad = {l:4,r:4,t:8,b:4};
+  const toX = (i) => pad.l + (i/(data.length-1))*(W-pad.l-pad.r);
+  const toY = (v) => pad.t + (1-(v-minW)/(maxW-minW))*(H-pad.t-pad.b);
+
+  ctx.clearRect(0,0,W,H);
+  // gradient fill
+  const grad = ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  grad.addColorStop(0,'rgba(255,19,54,.28)');
+  grad.addColorStop(1,'rgba(255,19,54,0)');
+  ctx.beginPath();
+  data.forEach((d,i) => i===0 ? ctx.moveTo(toX(i),toY(d.weight)) : ctx.lineTo(toX(i),toY(d.weight)));
+  ctx.lineTo(toX(data.length-1), H-pad.b);
+  ctx.lineTo(toX(0), H-pad.b);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+  // line
+  ctx.beginPath();
+  data.forEach((d,i) => i===0 ? ctx.moveTo(toX(i),toY(d.weight)) : ctx.lineTo(toX(i),toY(d.weight)));
+  ctx.strokeStyle = 'var(--red)'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+  // dots
+  data.forEach((d,i)=>{
+    ctx.beginPath();
+    ctx.arc(toX(i),toY(d.weight),3,0,Math.PI*2);
+    ctx.fillStyle = 'var(--red)'; ctx.fill();
+  });
+}
+
+/* ---- PR HISTORY ---- */
+document.getElementById('prHistoryLoadBtn')?.addEventListener('click', async () => {
+  const wrap = document.getElementById('prHistoryWrap');
+  const btn = document.getElementById('prHistoryLoadBtn');
+  if(!wrap) return;
+  if(btn){ btn.disabled=true; btn.textContent='Loading…'; }
+  try{
+    const res = await api('getExerciseBests', { exerciseNames: [] }, {silent:true});
+    // We need all exercises — pass all plan exercises
+    const allNames = Object.values(state.plan || {})
+      .filter(v => Array.isArray(v))
+      .flat()
+      .map(ex => ex.exerciseName)
+      .filter((v,i,a) => v && a.indexOf(v)===i);
+    const res2 = await api('getExerciseBests', { exerciseNames: allNames }, {silent:true});
+    if(!res2.ok){ toast('Could not load PRs.'); return; }
+    const bests = res2.bests;
+    const sorted = allNames.filter(n => bests[n] > 0).sort((a,b) => (bests[b]||0)-(bests[a]||0));
+    if(!sorted.length){
+      wrap.innerHTML = '<div class="pr-empty">No personal records yet — keep training!</div>';
+      return;
+    }
+    wrap.innerHTML = `<div class="pr-table">
+      <div class="pr-table-head"><span>Exercise</span><span>Best sets</span><span>Date</span></div>
+      ${sorted.map(n=>`<div class="pr-table-row">
+        <div class="pr-ex-name"><span class="pr-trophy">🏆</span>${n}</div>
+        <div class="pr-sets">${bests[n]}</div>
+        <div class="pr-date">All-time</div>
+      </div>`).join('')}
+    </div>`;
+  }catch(e){ if(e.message!=='Session expired') toast('Could not load PRs.'); if(btn){ btn.disabled=false; btn.textContent='Load all-time PRs'; } }
+});
+
+/* ---- LIGHT MODE TOGGLE ---- */
+const lightToggle = document.getElementById('lightModeToggle');
+if(lightToggle){
+  const saved = localStorage.getItem('ironlog_lightmode') === '1';
+  lightToggle.checked = saved;
+  document.body.classList.toggle('light-mode', saved);
+  lightToggle.onchange = () => {
+    const on = lightToggle.checked;
+    document.body.classList.toggle('light-mode', on);
+    localStorage.setItem('ironlog_lightmode', on ? '1' : '0');
+  };
+}
 
 /* ---- BOOT ---- */
 (async function boot(){
