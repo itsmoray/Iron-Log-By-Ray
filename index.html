@@ -124,7 +124,8 @@ a{color:inherit;}
   width:34px;height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center;
   cursor:pointer; transition: color .2s var(--ease), border-color .2s var(--ease), transform .15s var(--ease); font-size:16px; flex-shrink:0;
 }
-.icon-btn:hover{color:var(--red); border-color:var(--red-deep);}
+.icon-btn:hover{color:var(--red); border-color:var(--red-deep); box-shadow:0 0 10px var(--red-glow);}
+#logoutBtn:hover{color:#ff8a98;}
 .icon-btn:active{transform:scale(.9);}
 
 main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;}
@@ -709,7 +710,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
       </div>
       <div class="topbar-right">
         <div class="user-chip">Hi, <b id="userChipName">—</b></div>
-        <button class="icon-btn" id="logoutBtn" title="Log out">↩</button>
+        <button class="icon-btn" id="logoutBtn" title="Log out">⏻</button>
       </div>
     </div>
 
