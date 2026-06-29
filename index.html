@@ -537,6 +537,107 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 @media (max-width:360px){
   .brand .word{display:none;}
 }
+
+/* ============ NEW: VIEW SLIDE/FADE TRANSITIONS ============ */
+.view-out-left{ animation: viewOutLeft .16s var(--ease) forwards; }
+.view-out-right{ animation: viewOutRight .16s var(--ease) forwards; }
+@keyframes viewOutLeft{ to{ opacity:0; transform:translateX(-18px); } }
+@keyframes viewOutRight{ to{ opacity:0; transform:translateX(18px); } }
+.view-in-right, .view-in-left{ opacity:0; }
+.view-in-right{ transform:translateX(18px); }
+.view-in-left{ transform:translateX(-18px); }
+.view-in-active{ opacity:1 !important; transform:translateX(0) !important; transition: opacity .36s var(--ease), transform .36s var(--ease); }
+
+/* ============ NEW: EXERCISE ROW COMPLETION FLASH ============ */
+.exercise-row.flash{ animation: rowFlashPulse .6s var(--ease) both; }
+@keyframes rowFlashPulse{
+  0%{ background-color: rgba(255,19,54,0); transform:scale(1); }
+  18%{ background-color: rgba(255,19,54,.24); transform:scale(1.012); }
+  100%{ background-color: rgba(40,217,124,.04); transform:scale(1); }
+}
+
+/* ============ NEW: AUTH BUTTON LOADING SPINNER ============ */
+.btn-primary{position:relative;}
+.btn-spinner-dot{
+  display:none; width:16px; height:16px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
+  border-radius:50%; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+}
+.btn-primary.loading .btn-label{visibility:hidden;}
+.btn-primary.loading .btn-spinner-dot{display:block; animation: spin .7s linear infinite, btnSpinnerPulse 1s ease-in-out infinite;}
+@keyframes btnSpinnerPulse{0%,100%{opacity:.55;} 50%{opacity:1;}}
+
+/* ============ NEW: TOPBAR LOGO PULSE ON LOGIN ============ */
+.logo-pulse{ animation: logoPulseGlow .85s var(--ease); }
+@keyframes logoPulseGlow{
+  0%{ filter:drop-shadow(0 0 0 rgba(255,19,54,0)); transform:scale(1); }
+  40%{ filter:drop-shadow(0 0 10px var(--red-glow)); transform:scale(1.14); }
+  100%{ filter:drop-shadow(0 0 0 rgba(255,19,54,0)); transform:scale(1); }
+}
+
+/* ============ NEW: INPUT FOCUS LIFT ============ */
+.field input:focus, .field select:focus{ transform:translateY(-1px); }
+
+/* ============ NEW: REST TIMER SHAKE WHEN DONE ============ */
+@keyframes restTimerShake{
+  0%,100%{ transform:translate(-50%,0); }
+  20%{ transform:translate(-50%,0) translateX(-5px); }
+  40%{ transform:translate(-50%,0) translateX(5px); }
+  60%{ transform:translate(-50%,0) translateX(-3px); }
+  80%{ transform:translate(-50%,0) translateX(3px); }
+}
+.rest-timer.done{ animation: restTimerShake .4s ease; }
+
+/* ============ NEW: COMPLETION PARTICLE BURST ============ */
+.burst-wrap{ position:absolute; inset:0; pointer-events:none; overflow:visible; z-index:5; }
+.burst-particle{
+  position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%;
+  transform: translate(-50%,-50%); box-shadow:0 0 6px currentColor;
+  animation: burstFly .75s var(--ease) forwards;
+}
+@keyframes burstFly{
+  0%{ transform:translate(-50%,-50%) rotate(var(--angle)) translateX(0) scale(1); opacity:1; }
+  100%{ transform:translate(-50%,-50%) rotate(var(--angle)) translateX(var(--dist)) scale(.25); opacity:0; }
+}
+
+/* ============ NEW: PERSONAL RECORD BADGE ============ */
+.pr-badge{
+  display:inline-block; margin-left:8px; font-size:10px; font-weight:800; letter-spacing:.04em;
+  color:var(--amber); background:rgba(255,176,32,.12); border:1px solid rgba(255,176,32,.4);
+  padding:2px 7px; border-radius:999px; vertical-align:middle; opacity:0; transform:scale(.5);
+  white-space:nowrap;
+}
+.pr-badge.pop{ animation: prPop .6s var(--ease-spring) forwards; }
+@keyframes prPop{
+  0%{ opacity:0; transform:scale(.4) rotate(-8deg); }
+  60%{ opacity:1; transform:scale(1.15) rotate(4deg); }
+  100%{ opacity:1; transform:scale(1) rotate(0); }
+}
+
+/* ============ NEW: WEEKLY PROGRESS STRIP ============ */
+.week-strip-card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; }
+.week-strip-head{ font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:10px; font-weight:700; }
+.week-strip{ display:flex; gap:6px; justify-content:space-between; }
+.week-day{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.wd-dot{ width:100%; max-width:30px; aspect-ratio:1; border-radius:8px; background:var(--line); transition:background .35s var(--ease), box-shadow .35s var(--ease), opacity .35s var(--ease); }
+.week-day.lvl-low .wd-dot{ background:#2f81f7; opacity:.55; }
+.week-day.lvl-mid .wd-dot{ background:var(--amber); opacity:.65; }
+.week-day.lvl-high .wd-dot{ background:#ff7a1a; opacity:.8; }
+.week-day.lvl-full .wd-dot{ background:var(--red); box-shadow:0 0 10px var(--red-glow); opacity:1; }
+.week-day.future .wd-dot{ opacity:.22; }
+.wd-lbl{ font-size:10px; color:var(--muted); font-family:var(--ff-mono); }
+.week-day.today .wd-lbl{ color:var(--red); font-weight:800; }
+
+/* ============ NEW: MOTIVATIONAL MICRO-COPY ============ */
+.motivation-line{
+  font-size:12px; color:var(--muted); font-style:italic; text-align:center; margin-bottom:16px;
+  opacity:0; transition: opacity .28s var(--ease); min-height:16px;
+}
+.motivation-line.show{ opacity:1; }
+
+@media (prefers-reduced-motion: reduce){
+  .view-out-left,.view-out-right,.view-in-active,.exercise-row.flash,.logo-pulse,.rest-timer.done,
+  .burst-particle,.pr-badge.pop{ animation:none !important; transition:none !important; }
+}
 </style>
 </head>
 <body>
@@ -563,7 +664,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
       <div id="loginForm">
         <div class="field"><label>Username</label><input type="text" id="loginUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
         <div class="field"><label>Password</label><input type="password" id="loginPass" autocomplete="current-password"></div>
-        <button class="btn btn-primary" id="loginBtn">Enter the log</button>
+        <button class="btn btn-primary" id="loginBtn"><span class="btn-label">Enter the log</span><span class="btn-spinner-dot"></span></button>
       </div>
 
       <!-- REGISTER -->
@@ -571,7 +672,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
         <div class="field"><label>Choose a username</label><input type="text" id="regUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
         <div class="field"><label>Choose a password</label><input type="password" id="regPass" autocomplete="new-password"></div>
         <div class="field"><label>Confirm password</label><input type="password" id="regPass2" autocomplete="new-password"></div>
-        <button class="btn btn-primary" id="registerBtn">Create account</button>
+        <button class="btn btn-primary" id="registerBtn"><span class="btn-label">Create account</span><span class="btn-spinner-dot"></span></button>
       </div>
 
       <div class="auth-switch">
@@ -613,6 +714,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
           </div>
           <div class="date-pill" id="dashDate">—</div>
         </div>
+        <div class="motivation-line" id="motivationLine"></div>
         <div id="dashboardContent" class="dash-grid"></div>
       </section>
 
@@ -889,6 +991,7 @@ let state = {
   planEditMode: false,
   planDraft: null,
   statsCache: {}, // key: "YYYY-M" -> { summary, days } from getMonthStats
+  exerciseBests: {}, // exerciseName -> best-ever setsDone from prior days (from backend)
 };
 
 /* ---- helpers ---- */
@@ -997,7 +1100,7 @@ document.getElementById('rtSkip').onclick = hideRestTimer;
    old observed nodes get thrown away with the markup.
 */
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function revealOnScroll(container){
+function revealOnScroll(container, staggerMs=45, maxIndex=12){
   if(!container) return;
   const items = container.querySelectorAll('.reveal');
   if(reduceMotion || !('IntersectionObserver' in window)){
@@ -1013,7 +1116,7 @@ function revealOnScroll(container){
     });
   }, { threshold:0.1, rootMargin:'0px 0px -30px 0px' });
   items.forEach((el, i) => {
-    el.style.transitionDelay = (Math.min(i,12) * 45) + 'ms';
+    el.style.transitionDelay = (Math.min(i,maxIndex) * staggerMs) + 'ms';
     obs.observe(el);
   });
 }
@@ -1041,6 +1144,112 @@ function animatePct(el, to, duration=650){
     if(t < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
+}
+
+// Counts a stat-card readout up from 0 to its final value (preserving any
+// non-numeric suffix like "%"). Used for Stats tab numbers on load.
+function animateStatValue(el, finalText, duration=750){
+  if(!el) return;
+  if(reduceMotion){ el.textContent = finalText; return; }
+  const match = String(finalText).match(/^(\d+)(.*)$/);
+  if(!match){ el.textContent = finalText; return; }
+  const target = parseInt(match[1], 10);
+  const suffix = match[2] || '';
+  el.textContent = '0' + suffix;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(target * eased) + suffix;
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---- MOTIVATIONAL MICRO-COPY ----
+   A short, low-key motivational line on the dashboard that quietly cycles
+   every few seconds — not a banner, just a small reminder that someone's
+   still showing up. */
+const MOTIVATION_LINES = [
+  "Consistency beats intensity.",
+  "Still showing up — that's the whole game.",
+  "One more set than yesterday.",
+  "Discipline is doing it when you don't feel like it.",
+  "Small reps, big results.",
+  "Your future self is taking notes.",
+  "Progress, not perfection.",
+  "Train with intent. Track with precision.",
+];
+let motivationTimer = null;
+function startMotivationCycle(){
+  const el = document.getElementById('motivationLine');
+  if(!el) return;
+  clearInterval(motivationTimer);
+  let i = Math.floor(Math.random() * MOTIVATION_LINES.length);
+  const show = () => {
+    el.classList.remove('show');
+    setTimeout(() => {
+      el.textContent = MOTIVATION_LINES[i % MOTIVATION_LINES.length];
+      el.classList.add('show');
+      i++;
+    }, reduceMotion ? 0 : 280);
+  };
+  show();
+  motivationTimer = setInterval(show, 6500);
+}
+
+/* ---- WEEKLY PROGRESS STRIP ----
+   A 7-day Mon→Sun strip on the dashboard, color coded the same way as the
+   calendar legend, showing which days this week had training logged. */
+async function renderWeekStrip(){
+  const wrap = document.getElementById('weekStripWrap');
+  if(!wrap) return;
+  const today = new Date();
+  const dow = (today.getDay() + 6) % 7; // Mon=0
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - dow);
+  const dates = [];
+  for(let i = 0; i < 7; i++){
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+
+  const monthsNeeded = new Set(dates.map(d => `${d.getFullYear()}-${d.getMonth()+1}`));
+  const dayMap = {};
+  for(const key of monthsNeeded){
+    const [y, m] = key.split('-').map(Number);
+    let cached = state.statsCache[key];
+    if(!cached){
+      try{
+        const res = await api('getMonthStats', { year: y, month: m }, { silent:true });
+        if(res.ok){ cached = { summary: res.summary, days: res.days }; state.statsCache[key] = cached; }
+      }catch(e){ /* week strip is a nice-to-have, fail quietly */ }
+    }
+    if(cached) (cached.days || []).forEach(d => { dayMap[d.date] = d; });
+  }
+
+  const todayS = todayStr();
+  const dowLabels = ['M','T','W','T','F','S','S'];
+  const html = dates.map(d => {
+    const ds = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    const info = dayMap[ds];
+    const isFuture = ds > todayS;
+    const isToday = ds === todayS;
+    let lvl = 'lvl-0';
+    if(info){
+      if(info.pct === 100) lvl = 'lvl-full';
+      else if(info.pct >= 66) lvl = 'lvl-high';
+      else if(info.pct >= 33) lvl = 'lvl-mid';
+      else if(info.pct > 0) lvl = 'lvl-low';
+    }
+    return `<div class="week-day ${lvl} ${isToday?'today':''} ${isFuture?'future':''} reveal" title="${ds}${info ? ' · '+info.pct+'%' : ''}">
+      <div class="wd-dot"></div><div class="wd-lbl">${dowLabels[(d.getDay()+6)%7]}</div>
+    </div>`;
+  }).join('');
+  if(!document.getElementById('weekStripWrap')) return; // dashboard may have re-rendered while we were fetching
+  wrap.innerHTML = html;
+  revealOnScroll(wrap, 50, 7);
 }
 
 // Topbar gains a subtle shadow once the page has scrolled, for depth.
@@ -1098,6 +1307,11 @@ function setAuthBusy(busy){
   document.getElementById('loginBtn').disabled = busy;
   document.getElementById('registerBtn').disabled = busy;
 }
+function setBtnLoading(btn, loading){
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.classList.toggle('loading', loading);
+}
 
 document.getElementById('switchToRegister').onclick = () => {
   document.getElementById('loginForm').classList.add('hidden');
@@ -1120,6 +1334,7 @@ document.getElementById('loginBtn').onclick = async () => {
   const password = document.getElementById('loginPass').value;
   if(!username || !password){ showAuthError('Enter your username and password.'); return; }
   setAuthBusy(true);
+  setBtnLoading(document.getElementById('loginBtn'), true);
   try{
     const data = await api('login', { username, password });
     if(!data.ok){ showAuthError(data.error || 'Login failed.'); return; }
@@ -1128,7 +1343,7 @@ document.getElementById('loginBtn').onclick = async () => {
     if(e.message !== 'No API URL' && e.message !== 'Session expired'){
       showAuthError(e.message || 'Cannot reach the server. Check your API URL in Settings.');
     }
-  } finally { setAuthBusy(false); }
+  } finally { setAuthBusy(false); setBtnLoading(document.getElementById('loginBtn'), false); }
 };
 
 document.getElementById('loginPass').onkeydown = (e) => { if(e.key==='Enter') document.getElementById('loginBtn').click(); };
@@ -1143,6 +1358,7 @@ document.getElementById('registerBtn').onclick = async () => {
   if(p1.length < 6){ showAuthError('Password must be at least 6 characters.'); return; }
   if(p1 !== p2){ showAuthError('Passwords do not match.'); return; }
   setAuthBusy(true);
+  setBtnLoading(document.getElementById('registerBtn'), true);
   try{
     const data = await api('register', { username, password: p1 });
     // FIX #2: api() now properly parses response; if we get here without throwing, it worked
@@ -1152,7 +1368,7 @@ document.getElementById('registerBtn').onclick = async () => {
     if(e.message !== 'No API URL' && e.message !== 'Session expired'){
       showAuthError(e.message || 'Cannot reach server. Check your API URL in Settings.');
     }
-  } finally { setAuthBusy(false); }
+  } finally { setAuthBusy(false); setBtnLoading(document.getElementById('registerBtn'), false); }
 };
 
 function completeLogin(data){
@@ -1176,36 +1392,96 @@ document.getElementById('logoutBtn').onclick = () => logout(false);
 document.getElementById('logoutBtnSettings').onclick = () => logout(false);
 
 /* ---- NAV ---- */
+const VIEW_ORDER = ['dashboard','stats','plan','settings'];
+let currentView = 'dashboard';
 document.querySelectorAll('.nav-tabs button').forEach(btn => {
   btn.onclick = () => switchView(btn.dataset.view);
 });
 function switchView(view){
+  if(view === currentView) return;
   document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  ['dashboard','stats','plan','settings'].forEach(v => {
-    document.getElementById('view-'+v).classList.toggle('hidden', v !== view);
-  });
-  // Retrigger the entrance animation on whichever section just became visible
-  const activeSection = document.getElementById('view-'+view);
-  activeSection.classList.remove('view-anim');
-  void activeSection.offsetWidth; // force reflow so the animation restarts
-  activeSection.classList.add('view-anim');
 
-  if(view === 'stats') loadStats();
-  if(view === 'plan'){
-    state.planEditMode=false; state.planDraft=null;
-    document.getElementById('editPlanToggle').textContent='Edit plan';
-    renderPlanView();
+  const oldView = currentView;
+  const oldSection = document.getElementById('view-'+oldView);
+  const newSection = document.getElementById('view-'+view);
+  const oldIdx = VIEW_ORDER.indexOf(oldView);
+  const newIdx = VIEW_ORDER.indexOf(view);
+  const dir = newIdx > oldIdx ? 1 : -1; // 1 = new view slides in from the right
+  currentView = view;
+
+  const afterDataLoads = () => {
+    if(view === 'stats') loadStats();
+    if(view === 'plan'){
+      state.planEditMode=false; state.planDraft=null;
+      document.getElementById('editPlanToggle').textContent='Edit plan';
+      renderPlanView();
+    }
+  };
+
+  const showNew = () => {
+    oldSection.classList.add('hidden');
+    oldSection.classList.remove('view-out-left','view-out-right');
+    newSection.classList.remove('hidden');
+    afterDataLoads();
+    if(reduceMotion){ return; }
+    newSection.classList.remove('view-anim');
+    newSection.classList.add(dir > 0 ? 'view-in-right' : 'view-in-left');
+    void newSection.offsetWidth; // force reflow before animating in
+    requestAnimationFrame(() => newSection.classList.add('view-in-active'));
+    setTimeout(() => {
+      newSection.classList.remove('view-in-right','view-in-left','view-in-active');
+    }, 380);
+  };
+
+  if(reduceMotion){
+    showNew();
+    return;
   }
-  if(view === 'settings'){
-    // API URL is now fixed in code — no user-facing field to populate.
-  }
+  oldSection.classList.add(dir > 0 ? 'view-out-left' : 'view-out-right');
+  setTimeout(showNew, 160);
 }
+
+/* ---- SWIPE GESTURES (mobile): swipe left/right between Today / Stats / Plan ---- */
+(function setupSwipeGestures(){
+  const main = document.querySelector('main');
+  if(!main) return;
+  const SWIPE_VIEWS = ['dashboard','stats','plan'];
+  let startX = 0, startY = 0, startTime = 0, tracking = false;
+  main.addEventListener('touchstart', (e) => {
+    if(e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+    tracking = true;
+  }, { passive:true });
+  main.addEventListener('touchend', (e) => {
+    if(!tracking) return;
+    tracking = false;
+    if(state.planEditMode) return; // don't hijack swipes while editing plan inputs
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    const dt = Date.now() - startTime;
+    if(dt > 600 || Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+    const idx = SWIPE_VIEWS.indexOf(currentView);
+    if(idx === -1) return;
+    if(dx < 0 && idx < SWIPE_VIEWS.length - 1) switchView(SWIPE_VIEWS[idx + 1]);
+    else if(dx > 0 && idx > 0) switchView(SWIPE_VIEWS[idx - 1]);
+  }, { passive:true });
+})();
 
 /* ---- APP ENTRY ---- */
 async function enterApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
+  const mark = document.querySelector('.brand .mark');
+  if(mark){
+    mark.classList.remove('logo-pulse');
+    void mark.offsetWidth;
+    mark.classList.add('logo-pulse');
+    setTimeout(() => mark.classList.remove('logo-pulse'), 900);
+  }
   // FIX #9: wrap in try/catch so a failed loadPlanAndToday doesn't leave app in broken state
   try{
     await loadPlanAndToday();
@@ -1264,14 +1540,17 @@ async function loadPlanAndToday(){
     boot.logs.forEach(l => { state.todayLogs[l.exerciseName] = l; });
   }
   renderDashboard(day);
+  loadExerciseBests(day); // async, non-blocking — PR badges light up once it resolves
 }
 
 /* ---- DASHBOARD ---- */
 function renderDashboard(day){
   const groups = (state.plan[day] || []);
   const container = document.getElementById('dashboardContent');
+  startMotivationCycle();
 
   if(groups.length === 0){
+    state.burstFired = false;
     container.innerHTML = `
       <div class="ring-card reveal">
         <div style="font-size:48px;margin:8px 0;">😴</div>
@@ -1280,11 +1559,18 @@ function renderDashboard(day){
           Recovery is part of the program.<br>Rest well, come back stronger.
         </div>
       </div>
-      <div class="rest-card reveal">
-        <div class="big">No session today</div>
-        <p>Sunday is your rest day. Use it to hydrate, stretch, and let your muscles recover. See you Monday for Back &amp; Biceps.</p>
+      <div class="plan-col">
+        <div class="week-strip-card reveal">
+          <div class="week-strip-head">This week</div>
+          <div class="week-strip" id="weekStripWrap"></div>
+        </div>
+        <div class="rest-card reveal">
+          <div class="big">No session today</div>
+          <p>Sunday is your rest day. Use it to hydrate, stretch, and let your muscles recover. See you Monday for Back &amp; Biceps.</p>
+        </div>
       </div>`;
     revealOnScroll(container);
+    renderWeekStrip();
     return;
   }
 
@@ -1372,8 +1658,15 @@ function renderDashboard(day){
       </div>
       ${completeBanner}
     </div>
-    <div class="plan-col">${groupsHtml}</div>
+    <div class="plan-col">
+      <div class="week-strip-card reveal">
+        <div class="week-strip-head">This week</div>
+        <div class="week-strip" id="weekStripWrap"></div>
+      </div>
+      ${groupsHtml}
+    </div>
   `;
+  state.burstFired = (pct === 100); // don't burst on a page load that was already complete
 
   // Animate the progress ring filling up from empty and the percentage counting up,
   // instead of just snapping straight to the final state.
@@ -1385,6 +1678,7 @@ function renderDashboard(day){
   });
 
   revealOnScroll(container);
+  renderWeekStrip();
 
   const beginnerAdvanceBtn = container.querySelector('#beginnerAdvanceBtn');
   if(beginnerAdvanceBtn) beginnerAdvanceBtn.onclick = advanceBeginnerProgram;
@@ -1425,6 +1719,7 @@ async function advanceBeginnerProgram(){
   const day = getActiveDay();
   document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
   renderDashboard(day);
+  loadExerciseBests(day);
 }
 
 /* ---- EXERCISE DETAIL MODAL ---- */
@@ -1584,6 +1879,7 @@ async function handleToggle(row, exName, target){
   state.todayLogs[exName] = { exerciseName:exName, setsDone:setsDoneVal, targetSets:target, completed:newDone, date:todayStr(), day:getActiveDay() };
   refreshRing();
   queueSaveLog(exName, setsDoneVal, target, newDone);
+  if(newDone) checkPersonalRecord(row, exName, setsDoneVal);
 }
 
 async function handleStep(row, exName, target, delta){
@@ -1596,17 +1892,70 @@ async function handleStep(row, exName, target, delta){
   state.todayLogs[exName] = { exerciseName:exName, setsDone:cur, targetSets:target, completed, date:todayStr(), day:getActiveDay() };
   refreshRing();
   queueSaveLog(exName, cur, target, completed);
+  if(delta > 0 && cur > 0) checkPersonalRecord(row, exName, cur);
   // Logged a new set (not just decremented) and there's more to go — offer a rest timer.
   if(delta > 0 && cur > 0 && !completed) startRestTimer();
 }
 
 function updateRowUI(row, cur, target, completed){
+  const justCompleted = completed && !row.classList.contains('done');
   row.classList.toggle('done', completed);
   row.querySelector('.ex-check').classList.toggle('checked', completed);
   row.querySelector('.ex-name').classList.toggle('done', completed);
   const display = row.querySelector('.set-display');
   display.textContent = `${cur}/${target}`;
   pulseValue(display);
+  if(justCompleted) flashRow(row);
+}
+
+// A ripple/flash across the whole row (not just the checkbox) the moment an
+// exercise gets marked fully done — makes each completed exercise feel rewarding.
+function flashRow(row){
+  if(reduceMotion || !row) return;
+  row.classList.remove('flash');
+  void row.offsetWidth;
+  row.classList.add('flash');
+  setTimeout(() => row.classList.remove('flash'), 650);
+}
+
+/* ---- PERSONAL RECORDS ----
+   The all-time best setsDone per exercise comes from the backend (computed
+   from your real Logs sheet history, so it's accurate across every device
+   you use), loaded into state.exerciseBests when each day's plan loads.
+   When a fresh set count beats that stored best, pop a small animated
+   🏆 PR badge next to the exercise name. */
+async function loadExerciseBests(day){
+  const groups = state.plan[day] || [];
+  const names = groups.map(ex => ex.exerciseName);
+  if(!names.length) return;
+  try{
+    const res = await api('getExerciseBests', { exerciseNames: names }, { silent:true });
+    if(res.ok) Object.assign(state.exerciseBests, res.bests);
+  }catch(e){ /* PR tracking is a nice-to-have, fail quietly */ }
+}
+function checkPersonalRecord(row, exName, setsDoneVal){
+  const prevBest = state.exerciseBests[exName] || 0;
+  if(setsDoneVal > prevBest){
+    state.exerciseBests[exName] = setsDoneVal; // optimistic — avoids re-firing on repeat taps before the next sync
+    if(prevBest > 0) showPRBadge(row); // first-ever log isn't really "beating" anything
+  }
+}
+function showPRBadge(row){
+  if(reduceMotion || !row) return;
+  const info = row.querySelector('.ex-info');
+  if(!info) return;
+  let badge = info.querySelector('.pr-badge');
+  if(!badge){
+    badge = document.createElement('span');
+    badge.className = 'pr-badge';
+    badge.textContent = '🏆 PR';
+    info.querySelector('.ex-name').appendChild(badge);
+  }
+  badge.classList.remove('pop');
+  void badge.offsetWidth;
+  badge.classList.add('pop');
+  clearTimeout(badge._prTimer);
+  badge._prTimer = setTimeout(() => { if(badge && badge.parentNode) badge.remove(); }, 3000);
 }
 
 /* ---- DEBOUNCED BACKGROUND SAVE ----
@@ -1686,6 +2035,41 @@ function refreshRing(){
       ringCard.appendChild(banner);
     }
   }
+  // Fire a one-time particle/glow burst the moment a session newly hits 100% —
+  // not on a page load that was already complete, only on the live transition.
+  if(pct === 100 && !state.burstFired){
+    spawnCompletionBurst();
+    state.burstFired = true;
+  } else if(pct < 100){
+    state.burstFired = false;
+  }
+}
+
+// A small, tasteful burst of 6-8 red/white particles fired from the ring
+// card the moment a workout is fully completed.
+function spawnCompletionBurst(){
+  if(reduceMotion) return;
+  const ringCard = document.querySelector('.ring-card');
+  if(!ringCard) return;
+  const old = ringCard.querySelector('.burst-wrap');
+  if(old) old.remove();
+  const burst = document.createElement('div');
+  burst.className = 'burst-wrap';
+  const count = 7;
+  for(let i = 0; i < count; i++){
+    const p = document.createElement('span');
+    p.className = 'burst-particle';
+    const angle = (360 / count) * i + (Math.random() * 24 - 12);
+    const dist = 55 + Math.random() * 30;
+    p.style.setProperty('--angle', angle + 'deg');
+    p.style.setProperty('--dist', dist + 'px');
+    p.style.color = i % 2 === 0 ? 'var(--red)' : '#fff';
+    p.style.background = i % 2 === 0 ? 'var(--red)' : '#fff';
+    p.style.animationDelay = (Math.random() * 70) + 'ms';
+    burst.appendChild(p);
+  }
+  ringCard.appendChild(burst);
+  setTimeout(() => burst.remove(), 1000);
 }
 
 /* ---- STATS ---- */
@@ -1722,8 +2106,8 @@ function renderStatsTop(s){
   const streak = s.streak || 0;
   if(streak > 0){
     document.getElementById('streakBar').classList.remove('hidden');
-    document.getElementById('streakNum').textContent = streak;
     document.getElementById('streakLabel').textContent = streak === 1 ? 'day streak' : 'day streak';
+    animateStatValue(document.getElementById('streakNum'), String(streak), 600);
   } else {
     document.getElementById('streakBar').classList.add('hidden');
   }
@@ -1737,6 +2121,11 @@ function renderStatsTop(s){
     <div class="stat-card reveal"><div class="v">${c.v}</div><div class="k">${c.k}</div></div>
   `).join('');
   revealOnScroll(document.getElementById('statsTop'));
+  // Count each number up from 0 — staggered slightly so they don't all tick at once.
+  document.querySelectorAll('#statsTop .stat-card .v').forEach((el, i) => {
+    const finalText = el.textContent;
+    setTimeout(() => animateStatValue(el, finalText), i * 90);
+  });
 }
 
 function renderCalendar(days){
@@ -1769,7 +2158,7 @@ function renderCalendar(days){
     </div>`;
   }
   document.getElementById('calGrid').innerHTML = cells;
-  revealOnScroll(document.getElementById('calGrid'));
+  revealOnScroll(document.getElementById('calGrid'), 22, 42);
   document.querySelectorAll('.cal-cell[data-date]').forEach(cell => {
     if(cell.dataset.future === 'true') return;
     cell.onclick = () => openDayModal(cell.dataset.date);
