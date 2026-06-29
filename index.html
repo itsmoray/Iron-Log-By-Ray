@@ -586,7 +586,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .loader.show{opacity:1; pointer-events:auto;}
 .spinner{width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--red); border-radius:50%; animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-#refreshBtn.spinning{animation:spin .7s linear infinite;}
+#refreshBtn.spinning .hm-icon{display:inline-block; animation:spin .7s linear infinite;}
 .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
 .empty-state .big{font-family:var(--ff-display); font-size:15px; color:var(--text); margin-bottom:8px; letter-spacing:.06em;}
 
@@ -926,9 +926,163 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .toggle-switch input:checked + .toggle-track{background:var(--red);}
 .toggle-switch input:checked + .toggle-track::before{transform:translateX(20px);}
 
+/* ============ DEV TAB ============ */
+.dev-tab{
+  background:linear-gradient(135deg,rgba(255,176,32,.18),rgba(255,176,32,.06)) !important;
+  color:var(--amber) !important; border:1px solid rgba(255,176,32,.35);
+  border-radius:999px; font-size:10px; letter-spacing:.1em;
+}
+.dev-tab.active{background:var(--amber) !important; color:#000 !important; box-shadow:0 0 18px rgba(255,176,32,.45) !important;}
+
+/* ============ DEV PANEL ============ */
+.dev-summary-strip{
+  display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;
+}
+.dev-stat-pill{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 20px; display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; min-width:100px;
+}
+.dev-stat-pill span{font-family:var(--ff-display); font-size:22px; font-weight:900; color:var(--amber);}
+.dev-stat-pill small{font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted);}
+
+.dev-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; margin-bottom:16px;
+}
+.dev-card-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:14px 18px; border-bottom:1px solid var(--line); background:var(--panel-2);
+}
+.dev-card-head h3{margin:0; font-family:var(--ff-display); font-size:13px; letter-spacing:.06em;}
+.dev-search{
+  background:var(--black); border:1px solid var(--line); color:var(--text);
+  padding:8px 12px; border-radius:8px; font-size:13px; outline:none; font-family:var(--ff-body);
+  width:180px; transition: border-color .2s var(--ease);
+}
+.dev-search:focus{border-color:var(--amber);}
+
+.dev-user-table{ padding:8px; display:flex; flex-direction:column; gap:6px; }
+.dev-user-row{
+  display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+  background:var(--panel-2); border:1px solid var(--line); cursor:pointer;
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.dev-user-row:hover{border-color:var(--amber); background:rgba(255,176,32,.05);}
+.dev-user-row.dev-me{border-left:3px solid var(--amber);}
+.dev-user-avatar{
+  width:34px;height:34px;border-radius:50%;background:var(--line); flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text);
+}
+.dev-user-avatar.dev{background:rgba(255,176,32,.2); color:var(--amber);}
+.dev-user-info{flex:1;min-width:0;}
+.dev-user-name{font-weight:700;font-size:14px;}
+.dev-user-meta{font-size:11px;color:var(--muted);font-family:var(--ff-mono);margin-top:2px;}
+.dev-user-badges{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto;flex:none;}
+.dev-badge{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  padding:3px 8px;border-radius:999px;
+}
+.dev-badge.online{background:rgba(40,217,124,.15);color:var(--green);}
+.dev-badge.me{background:rgba(255,176,32,.15);color:var(--amber);}
+.dev-badge.inactive{background:var(--panel);border:1px solid var(--line);color:var(--muted-2);}
+
+.dev-loading{padding:24px;text-align:center;color:var(--muted);font-size:13px;}
+.dev-empty{padding:24px;text-align:center;color:var(--muted-2);font-size:13px;}
+
+/* Drawer */
+.dev-drawer{
+  background:var(--panel); border:1px solid var(--amber); border-radius:var(--radius);
+  margin-bottom:16px; overflow:hidden;
+  display:none;
+}
+.dev-drawer.open{display:block;}
+.dev-drawer-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel-2);
+}
+.dev-drawer-eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);font-weight:700;margin-bottom:3px;}
+.dev-drawer-name{font-family:var(--ff-display);font-size:16px;font-weight:900;}
+.dev-drawer-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;}
+.dev-drawer-close:hover{color:var(--red);}
+.dev-drawer-body{padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.dev-drawer-stat{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.dev-drawer-stat .dds-val{font-family:var(--ff-mono);font-size:18px;font-weight:700;color:var(--text);}
+.dev-drawer-stat .dds-key{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:3px;}
+.dev-drawer-actions{
+  display:flex;gap:10px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);
+  background:var(--panel-2);
+}
+
+/* ============ SPLASH SCREEN ============ */
+#splash{
+  position:fixed; inset:0; z-index:9999;
+  background:var(--black);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition: opacity .6s var(--ease), transform .6s var(--ease);
+}
+#splash.fade-out{ opacity:0; transform:scale(1.04); pointer-events:none; }
+#splash.gone{ display:none; }
+
+.splash-logo{
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  animation: splashLogoIn .65s var(--ease-spring) both;
+}
+@keyframes splashLogoIn{
+  from{ opacity:0; transform:translateY(28px) scale(.88); }
+  to{   opacity:1; transform:translateY(0)    scale(1);   }
+}
+.splash-mark{
+  width:76px; height:76px;
+  filter: drop-shadow(0 0 28px var(--red-glow));
+}
+.splash-wordmark{
+  font-family:var(--ff-display); font-weight:900; font-size:30px;
+  letter-spacing:.15em; color:var(--text); margin-top:-4px;
+}
+.splash-wordmark span{ color:var(--red); }
+.splash-tagline{
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); margin-top:-10px;
+  animation: splashLogoIn .65s var(--ease-spring) .15s both;
+}
+.splash-bar-wrap{
+  position:absolute; bottom:0; left:0; right:0;
+  height:3px; background:var(--line); overflow:hidden;
+}
+.splash-bar{
+  height:100%; width:0%;
+  background: linear-gradient(90deg, var(--red-deep), var(--red));
+  box-shadow: 0 0 14px var(--red-glow);
+  transition: width .4s var(--ease);
+  border-radius:0 2px 2px 0;
+}
+.splash-status{
+  position:absolute; bottom:24px; left:0; right:0;
+  text-align:center; font-size:10px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted-2);
+  font-family:var(--ff-mono);
+  animation: splashLogoIn .5s var(--ease) .3s both;
+}
 </style>
-</head>
 <body>
+
+<!-- ===================== SPLASH SCREEN ===================== -->
+<div id="splash">
+  <div class="splash-logo">
+    <svg class="splash-mark" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 18h6v12H6z" fill="#ff1336"/>
+      <path d="M14 22h4v4h-4z" fill="#ff1336"/>
+      <path d="M18 14h6v20h-6z" fill="#f3eef0"/>
+      <path d="M24 14h6v20h-6z" fill="#f3eef0"/>
+      <path d="M30 22h4v4h-4z" fill="#ff1336"/>
+      <path d="M36 18h6v12h-6z" fill="#ff1336"/>
+    </svg>
+    <div class="splash-wordmark">IRON<span>LOG</span></div>
+    <div class="splash-tagline">Train with intent. Track with precision.</div>
+  </div>
+  <div class="splash-status" id="splashStatus">Initialising…</div>
+  <div class="splash-bar-wrap"><div class="splash-bar" id="splashBar"></div></div>
+</div>
 
 <div id="offlineBanner"><div class="ob-dot"></div><span id="offlineBannerText">Working offline — changes will sync when back online</span><span class="ob-queue" id="offlineQueueCount"></span></div>
 <canvas id="confettiCanvas"></canvas>
@@ -987,6 +1141,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         <button data-view="stats">Stats</button>
         <button data-view="plan">Plan</button>
         <button data-view="settings">⚙</button>
+        <button data-view="dev" id="devTabBtn" class="hidden dev-tab">DEV</button>
       </div>
       <div class="topbar-right">
         <div class="hamburger-wrap">
@@ -1131,7 +1286,60 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
           </div>
         </div>
       </section>
-    </main>
+
+      <!-- DEV PANEL -->
+      <section id="view-dev" class="hidden">
+        <div class="section-head">
+          <div><div class="eyebrow" style="color:var(--amber);">⚡ Developer</div><h1>Admin Panel</h1></div>
+          <button class="btn btn-ghost" style="width:auto;padding:10px 18px;" id="devRefreshUsers">↻ Refresh</button>
+        </div>
+
+        <!-- Summary strip -->
+        <div class="dev-summary-strip" id="devSummaryStrip">
+          <div class="dev-stat-pill"><span id="devTotalUsers">—</span><small>Users</small></div>
+          <div class="dev-stat-pill"><span id="devActiveToday">—</span><small>Active this week</small></div>
+          <div class="dev-stat-pill"><span id="devTotalSets">—</span><small>Total sets logged</small></div>
+        </div>
+
+        <!-- User table -->
+        <div class="dev-card">
+          <div class="dev-card-head">
+            <h3>All Users</h3>
+            <input class="dev-search" id="devSearch" placeholder="Search users…" type="text">
+          </div>
+          <div id="devUserTable" class="dev-user-table">
+            <div class="dev-loading">Loading users…</div>
+          </div>
+        </div>
+
+        <!-- User detail drawer -->
+        <div class="dev-drawer" id="devDrawer">
+          <div class="dev-drawer-head">
+            <div>
+              <div class="dev-drawer-eyebrow">User detail</div>
+              <div class="dev-drawer-name" id="devDrawerName">—</div>
+            </div>
+            <button class="dev-drawer-close" id="devDrawerClose">✕</button>
+          </div>
+          <div id="devDrawerContent" class="dev-drawer-body">
+            <div class="dev-loading">Loading…</div>
+          </div>
+          <div class="dev-drawer-actions">
+            <button class="btn btn-ghost dev-action-btn" id="devResetPassBtn" style="width:auto;padding:10px 18px;">Reset password</button>
+            <button class="btn btn-danger dev-action-btn" id="devDeleteUserBtn" style="width:auto;padding:10px 18px;">Delete user &amp; data</button>
+          </div>
+        </div>
+
+        <!-- Reset password sub-form (shown inline) -->
+        <div class="dev-card hidden" id="devResetPassCard">
+          <h3>Reset Password for <span id="devResetPassFor" style="color:var(--red);"></span></h3>
+          <div class="field"><label>New password (min 6 chars)</label><input type="password" id="devNewPass" minlength="6" placeholder="New password"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" style="width:auto;padding:11px 22px;" id="devResetPassConfirm">Set new password</button>
+            <button class="btn btn-ghost" style="width:auto;padding:11px 22px;" id="devResetPassCancel">Cancel</button>
+          </div>
+        </div>
+      </section>
   </div>
 </div>
 
@@ -1202,6 +1410,32 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 </div>
 
 <script>
+/* ---- SPLASH SCREEN CONTROLLER ---- */
+const splash = {
+  el:     document.getElementById('splash'),
+  bar:    document.getElementById('splashBar'),
+  status: document.getElementById('splashStatus'),
+  _pct: 0,
+
+  set(pct, text) {
+    this._pct = pct;
+    if (this.bar)    this.bar.style.width = pct + '%';
+    if (this.status && text) this.status.textContent = text;
+  },
+
+  dismiss() {
+    if (!this.el) return;
+    this.set(100);
+    setTimeout(() => {
+      this.el.classList.add('fade-out');
+      setTimeout(() => { this.el.classList.add('gone'); }, 650);
+    }, 220);
+  }
+};
+
+// Kick off immediately — shows 10% right away so it doesn't look frozen
+splash.set(10, 'Loading…');
+
 /* ============================================================
    IRON LOG — Frontend v1.1 (Bug-fixed)
    ============================================================
@@ -1768,7 +2002,7 @@ document.getElementById('logoutBtn').onclick = () => logout(false);
 document.getElementById('logoutBtnSettings').onclick = () => logout(false);
 
 /* ---- NAV ---- */
-const VIEW_ORDER = ['dashboard','stats','plan','settings'];
+const VIEW_ORDER = ['dashboard','stats','plan','settings','dev'];
 let currentView = 'dashboard';
 document.querySelectorAll('.nav-tabs button').forEach(btn => {
   btn.onclick = () => switchView(btn.dataset.view);
@@ -1786,6 +2020,7 @@ function switchView(view){
   currentView = view;
 
   const afterDataLoads = () => {
+    document.dispatchEvent(new CustomEvent('ironlog:viewchange', { detail: view }));
     if(view === 'stats'){
       loadStats();
       initBodyweightTracker();
@@ -1855,9 +2090,11 @@ function switchView(view){
 
 /* ---- APP ENTRY ---- */
 async function enterApp(){
+  splash.set(35, 'Authenticating…');
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
+  devPanelSetup();
   showSkeletonDashboard();
   const mark = document.querySelector('.brand .mark');
   if(mark){
@@ -1866,18 +2103,17 @@ async function enterApp(){
     mark.classList.add('logo-pulse');
     setTimeout(() => mark.classList.remove('logo-pulse'), 900);
   }
-  // FIX #9: wrap in try/catch so a failed loadPlanAndToday doesn't leave app in broken state
   try{
     await loadPlanAndToday();
   }catch(e){
     console.error('Failed to load plan/today data:', e);
-    // Still show the app but with default plan
     if(!state.plan) state.plan = DEFAULT_PLAN;
     const day = getActiveDay();
     document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
     renderDashboard(day);
     toast('Could not load data from server. Working offline.');
+    splash.dismiss();
   }
 }
 
@@ -1901,9 +2137,11 @@ function mergeWithTemplate(savedPlan){
 }
 
 async function loadPlanAndToday(){
+  splash.set(55, 'Loading your plan…');
   const boot = await api('bootstrap', { date: todayStr() }, { silent:true });
   if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
 
+  splash.set(75, 'Building session…');
   if(boot.plan === null || boot.usedDefault){
     // Brand new user, never saved a plan before — ask the onboarding question
     // before deciding which plan to give them.
@@ -1927,8 +2165,10 @@ async function loadPlanAndToday(){
       if(l.exerciseName === '__SESSION_NOTE__') state.sessionNote = l.note || '';
     });
   }
+  splash.set(92, 'Almost ready…');
   renderDashboard(day);
   loadExerciseBests(day); // async, non-blocking — PR badges light up once it resolves
+  splash.dismiss();
 }
 
 /* ---- DASHBOARD ---- */
@@ -3116,6 +3356,220 @@ if(lightToggle){
   };
 }
 
+/* ---- DEVELOPER PANEL ---- */
+const DEVELOPER_USERNAME = 'ray'; // must match backend DEVELOPER_USERNAME
+
+function isDev() {
+  return state.username === DEVELOPER_USERNAME;
+}
+
+function initDevPanel() {
+  if (!isDev()) return;
+  const devTab = document.getElementById('devTabBtn');
+  if (devTab) devTab.classList.remove('hidden');
+}
+
+/* Load and render user list */
+let devUsers = [];
+
+async function devLoadUsers() {
+  const table = document.getElementById('devUserTable');
+  if (table) table.innerHTML = '<div class="dev-loading">Loading users…</div>';
+  try {
+    const res = await api('devListUsers', {}, { silent: true });
+    if (!res.ok) { toast('Dev: ' + res.error); return; }
+    devUsers = res.users || [];
+    devRenderUsers(devUsers);
+    devRenderSummary(devUsers);
+  } catch(e) { toast('Dev panel error: ' + (e.message || 'Unknown')); }
+}
+
+function devRenderSummary(users) {
+  const totalEl  = document.getElementById('devTotalUsers');
+  const activeEl = document.getElementById('devActiveToday');
+  const setsEl   = document.getElementById('devTotalSets');
+  if (totalEl) totalEl.textContent = users.length;
+
+  const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const active = users.filter(u => u.lastWorkout && new Date(u.lastWorkout) >= oneWeekAgo).length;
+  if (activeEl) activeEl.textContent = active;
+
+  const totalSets = users.reduce((s, u) => s + (u.totalSets || 0), 0);
+  if (setsEl) setsEl.textContent = totalSets.toLocaleString();
+}
+
+function devRenderUsers(users) {
+  const table = document.getElementById('devUserTable');
+  if (!table) return;
+  if (!users.length) { table.innerHTML = '<div class="dev-empty">No users found.</div>'; return; }
+
+  table.innerHTML = users.map(u => {
+    const initials = u.username.slice(0, 2).toUpperCase();
+    const isMe     = u.isDev;
+    const active   = u.activeSessions > 0;
+    const lastW    = u.lastWorkout ? u.lastWorkout : 'Never';
+    return `<div class="dev-user-row${isMe ? ' dev-me' : ''}" data-username="${u.username}">
+      <div class="dev-user-avatar${isMe ? ' dev' : ''}">${initials}</div>
+      <div class="dev-user-info">
+        <div class="dev-user-name">${u.username}${isMe ? ' <span style="font-size:10px;color:var(--amber);">YOU</span>' : ''}</div>
+        <div class="dev-user-meta">Joined ${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'} · ${u.totalWorkoutDays} workout days · Last: ${lastW}</div>
+      </div>
+      <div class="dev-user-badges">
+        ${active ? '<span class="dev-badge online">● Online</span>' : ''}
+        ${isMe   ? '<span class="dev-badge me">Dev</span>' : ''}
+        ${!active && !isMe ? '<span class="dev-badge inactive">Offline</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Row click → open drawer
+  table.querySelectorAll('.dev-user-row').forEach(row => {
+    row.addEventListener('click', () => devOpenDrawer(row.dataset.username));
+  });
+}
+
+let devSelectedUser = null;
+
+async function devOpenDrawer(username) {
+  devSelectedUser = username;
+  const drawer  = document.getElementById('devDrawer');
+  const nameEl  = document.getElementById('devDrawerName');
+  const bodyEl  = document.getElementById('devDrawerContent');
+  const delBtn  = document.getElementById('devDeleteUserBtn');
+  const rstBtn  = document.getElementById('devResetPassBtn');
+
+  if (!drawer) return;
+  if (nameEl) nameEl.textContent = username;
+  if (bodyEl) bodyEl.innerHTML = '<div class="dev-loading">Loading stats…</div>';
+  drawer.classList.add('open');
+  drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Hide delete for developer account
+  const isDevAccount = username === DEVELOPER_USERNAME;
+  if (delBtn) delBtn.style.display = isDevAccount ? 'none' : '';
+  if (rstBtn) rstBtn.style.display = isDevAccount ? 'none' : '';
+
+  try {
+    const res = await api('devGetUserStats', { targetUsername: username }, { silent: true });
+    if (!res.ok) { if (bodyEl) bodyEl.innerHTML = '<div class="dev-empty">Could not load stats.</div>'; return; }
+    const s = res;
+
+    const statBlocks = [
+      { val: s.totalWorkoutDays, key: 'Workout days' },
+      { val: s.totalSets, key: 'Total sets' },
+      { val: s.firstWorkout || '—', key: 'First workout' },
+      { val: s.lastWorkout || '—', key: 'Last workout' },
+      { val: s.latestBodyweight ? s.latestBodyweight + ' kg' : '—', key: 'Body weight' },
+      { val: s.hasPlan ? 'Yes' : 'No', key: 'Has plan' },
+    ];
+
+    let topEx = '';
+    if (s.topExercises && s.topExercises.length) {
+      topEx = `<div style="padding:14px 18px;border-top:1px solid var(--line);">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-weight:700;">Top exercises</div>
+        ${s.topExercises.slice(0,5).map(ex =>
+          `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
+            <span>${ex.name}</span><span style="font-family:var(--ff-mono);color:var(--red);">${ex.sets} sets</span>
+          </div>`
+        ).join('')}
+      </div>`;
+    }
+
+    if (bodyEl) bodyEl.innerHTML = statBlocks.map(b =>
+      `<div class="dev-drawer-stat"><div class="dds-val">${b.val}</div><div class="dds-key">${b.key}</div></div>`
+    ).join('');
+
+    // Append top exercises after grid (outside grid)
+    if (topEx) {
+      const topWrap = document.createElement('div');
+      topWrap.innerHTML = topEx;
+      drawer.querySelector('.dev-drawer-body').insertAdjacentElement('afterend', topWrap.firstElementChild);
+    }
+  } catch(e) { if (bodyEl) bodyEl.innerHTML = '<div class="dev-empty">Error loading stats.</div>'; }
+}
+
+function devCloseDrawer() {
+  const drawer = document.getElementById('devDrawer');
+  if (drawer) drawer.classList.remove('open');
+  devSelectedUser = null;
+  // Also hide reset pass card
+  const rpc = document.getElementById('devResetPassCard');
+  if (rpc) rpc.classList.add('hidden');
+}
+
+// Wire up dev panel events after DOM ready
+document.addEventListener('DOMContentLoaded', () => {});
+
+// Called once after successful login
+function devPanelSetup() {
+  if (!isDev()) return;
+  initDevPanel();
+
+  document.getElementById('devRefreshUsers')?.addEventListener('click', devLoadUsers);
+  document.getElementById('devDrawerClose')?.addEventListener('click', devCloseDrawer);
+
+  // Delete user
+  document.getElementById('devDeleteUserBtn')?.addEventListener('click', async () => {
+    if (!devSelectedUser) return;
+    const confirmed = confirm(`⚠️ PERMANENTLY delete user "${devSelectedUser}" and ALL their workout data?\n\nThis cannot be undone.`);
+    if (!confirmed) return;
+    const confirmed2 = confirm(`Last chance — delete "${devSelectedUser}" forever?`);
+    if (!confirmed2) return;
+    try {
+      const res = await api('devDeleteUser', { targetUsername: devSelectedUser }, { silent: false });
+      if (res.ok) {
+        toast('User "' + devSelectedUser + '" deleted.', true);
+        devCloseDrawer();
+        devLoadUsers();
+      } else { toast('Delete failed: ' + res.error); }
+    } catch(e) { toast('Error: ' + e.message); }
+  });
+
+  // Show reset-pass card
+  document.getElementById('devResetPassBtn')?.addEventListener('click', () => {
+    if (!devSelectedUser) return;
+    const card = document.getElementById('devResetPassCard');
+    const forEl = document.getElementById('devResetPassFor');
+    if (forEl) forEl.textContent = devSelectedUser;
+    if (card) { card.classList.remove('hidden'); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  });
+
+  document.getElementById('devResetPassCancel')?.addEventListener('click', () => {
+    document.getElementById('devResetPassCard')?.classList.add('hidden');
+    document.getElementById('devNewPass').value = '';
+  });
+
+  document.getElementById('devResetPassConfirm')?.addEventListener('click', async () => {
+    const newPass = document.getElementById('devNewPass')?.value || '';
+    if (newPass.length < 6) { toast('Password must be at least 6 characters.'); return; }
+    try {
+      const res = await api('devResetPassword', { targetUsername: devSelectedUser, newPassword: newPass }, { silent: false });
+      if (res.ok) {
+        toast('Password reset for "' + devSelectedUser + '"!', true);
+        document.getElementById('devResetPassCard')?.classList.add('hidden');
+        document.getElementById('devNewPass').value = '';
+      } else { toast('Reset failed: ' + res.error); }
+    } catch(e) { toast('Error: ' + e.message); }
+  });
+
+  // Search / filter
+  document.getElementById('devSearch')?.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const filtered = q ? devUsers.filter(u => u.username.includes(q)) : devUsers;
+    devRenderUsers(filtered);
+  });
+}
+
+/* Hook into the existing view switch to lazy-load users on first visit */
+let devLoaded = false;
+const _origSwitchView = window.switchView; // will be defined after existing JS
+document.addEventListener('ironlog:viewchange', (e) => {
+  if (e.detail === 'dev' && isDev() && !devLoaded) {
+    devLoaded = true;
+    devLoadUsers();
+  }
+});
+
 /* ---- HAMBURGER MENU ---- */
 (function(){
   const btn = document.getElementById('hamburgerBtn');
@@ -3148,16 +3602,20 @@ if(lightToggle){
 /* ---- BOOT ---- */
 (async function boot(){
   if(state.token){
+    splash.set(20, 'Resuming session…');
     try{
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('mainScreen').classList.remove('hidden');
       document.getElementById('userChipName').textContent = state.username;
+      devPanelSetup();
+      showSkeletonDashboard();
       await loadPlanAndToday(); // bootstrap call also validates the token server-side
       return;
     }catch(e){
       console.error('Boot failed:', e);
       if(e.message === 'Session expired' || e.message === 'No API URL'){
         logout(true); // clear invalid token silently, show login screen
+        splash.dismiss();
         return;
       }
       // Network/server error but token might still be fine — show app with default
@@ -3168,7 +3626,12 @@ if(lightToggle){
       document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
       renderDashboard(day);
       toast('Could not load data from server. Working offline.');
+      splash.dismiss();
     }
+  } else {
+    // No saved token — go straight to login screen
+    splash.set(100, 'Ready');
+    splash.dismiss();
   }
 })();
 </script>
