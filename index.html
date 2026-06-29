@@ -545,13 +545,15 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .rest-timer{
   position:fixed; left:50%; bottom:0; transform:translate(-50%, 120%);
   display:flex; align-items:center; gap:10px;
-  background:var(--panel-2); border:1px solid var(--red-deep); border-bottom:none;
-  border-radius:18px 18px 0 0; padding:12px 16px 14px; z-index:210;
-  box-shadow:0 -10px 30px rgba(0,0,0,.5);
+  background:var(--panel-2); border:1px solid var(--red-deep);
+  border-radius:18px; padding:14px 18px 16px;
+  margin-bottom:28px;
+  z-index:210;
+  box-shadow:0 -6px 40px rgba(0,0,0,.6), 0 0 0 1px var(--red-deep);
   transition: transform .4s var(--ease-spring);
   max-width:94vw;
 }
-.rest-timer.show{ transform:translate(-50%, 0); }
+.rest-timer.show{ transform:translate(-50%, -28px); }
 .rt-ring-wrap{ position:relative; width:48px; height:48px; flex:none; }
 .rt-ring-wrap svg{ transform:rotate(-90deg); }
 .rt-ring-bg{ fill:none; stroke:var(--line); stroke-width:4; }
@@ -1047,7 +1049,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 }
 .splash-bar-wrap{
   position:absolute; bottom:0; left:0; right:0;
-  height:3px; background:var(--line); overflow:hidden;
+  height:5px; background:var(--line); overflow:hidden;
 }
 .splash-bar{
   height:100%; width:0%;
@@ -1057,7 +1059,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
   border-radius:0 2px 2px 0;
 }
 .splash-status{
-  position:absolute; bottom:24px; left:0; right:0;
+  position:absolute; bottom:48px; left:0; right:0;
   text-align:center; font-size:10px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--muted-2);
   font-family:var(--ff-mono);
@@ -1141,7 +1143,6 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         <button data-view="stats">Stats</button>
         <button data-view="plan">Plan</button>
         <button data-view="settings">⚙</button>
-        <button data-view="dev" id="devTabBtn" class="hidden dev-tab">DEV</button>
       </div>
       <div class="topbar-right">
         <div class="hamburger-wrap">
@@ -1155,6 +1156,9 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
           <div class="hamburger-menu" id="hamburgerMenu" role="menu">
             <div class="hm-user">Hi, <b id="userChipName">—</b></div>
             <div class="hm-divider"></div>
+            <button class="hm-item hidden" id="devMenuBtn" data-view="dev">
+              <span class="hm-icon" style="color:var(--amber);">⚡</span> <span style="color:var(--amber);font-weight:700;">Dev Panel</span>
+            </button>
             <button class="hm-item" id="refreshBtn">
               <span class="hm-icon">⟳</span> Refresh
             </button>
@@ -3365,8 +3369,9 @@ function isDev() {
 
 function initDevPanel() {
   if (!isDev()) return;
-  const devTab = document.getElementById('devTabBtn');
-  if (devTab) devTab.classList.remove('hidden');
+  // Show the Dev Panel item in the hamburger menu
+  const devMenuBtn = document.getElementById('devMenuBtn');
+  if (devMenuBtn) devMenuBtn.classList.remove('hidden');
 }
 
 /* Load and render user list */
@@ -3596,6 +3601,10 @@ document.addEventListener('ironlog:viewchange', (e) => {
   // Close menu after an action is triggered
   menu.querySelectorAll('.hm-item').forEach(item => {
     item.addEventListener('click', () => setTimeout(closeMenu, 120));
+  });
+  // Dev panel shortcut
+  document.getElementById('devMenuBtn')?.addEventListener('click', () => {
+    switchView('dev');
   });
 })();
 
