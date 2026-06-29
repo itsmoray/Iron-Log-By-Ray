@@ -543,17 +543,16 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 
 /* ============ REST TIMER ============ */
 .rest-timer{
-  position:fixed; left:50%; bottom:0; transform:translate(-50%, 120%);
+  position:fixed; left:50%; bottom:-200px; transform:translateX(-50%);
   display:flex; align-items:center; gap:10px;
   background:var(--panel-2); border:1px solid var(--red-deep);
   border-radius:18px; padding:14px 18px 16px;
-  margin-bottom:28px;
   z-index:210;
-  box-shadow:0 -6px 40px rgba(0,0,0,.6), 0 0 0 1px var(--red-deep);
-  transition: transform .4s var(--ease-spring);
+  box-shadow:none;
+  transition: bottom .4s var(--ease-spring), box-shadow .4s var(--ease-spring);
   max-width:94vw;
 }
-.rest-timer.show{ transform:translate(-50%, -28px); }
+.rest-timer.show{ bottom:28px; box-shadow:0 -6px 40px rgba(0,0,0,.6), 0 0 0 1px var(--red-deep); }
 .rt-ring-wrap{ position:relative; width:48px; height:48px; flex:none; }
 .rt-ring-wrap svg{ transform:rotate(-90deg); }
 .rt-ring-bg{ fill:none; stroke:var(--line); stroke-width:4; }
@@ -1337,18 +1336,11 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 
         <!-- Reset password sub-form (shown inline) -->
         <div class="dev-card hidden" id="devResetPassCard">
-          <div class="dev-card-head">
-            <h3>Reset Password for <span id="devResetPassFor" style="color:var(--red);font-family:var(--ff-display);"></span></h3>
-          </div>
-          <div style="padding:18px;display:flex;flex-direction:column;gap:14px;">
-            <div class="field" style="margin:0;">
-              <label style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;display:block;margin-bottom:8px;">New password (min 6 chars)</label>
-              <input type="password" id="devNewPass" minlength="6" placeholder="New password" style="width:100%;">
-            </div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn btn-primary" style="flex:1;" id="devResetPassConfirm">Set new password</button>
-              <button class="btn btn-ghost" style="flex:1;" id="devResetPassCancel">Cancel</button>
-            </div>
+          <h3>Reset Password for <span id="devResetPassFor" style="color:var(--red);"></span></h3>
+          <div class="field"><label>New password (min 6 chars)</label><input type="password" id="devNewPass" minlength="6" placeholder="New password"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" style="width:auto;padding:11px 22px;" id="devResetPassConfirm">Set new password</button>
+            <button class="btn btn-ghost" style="width:auto;padding:11px 22px;" id="devResetPassCancel">Cancel</button>
           </div>
         </div>
       </section>
