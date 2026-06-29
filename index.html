@@ -1142,7 +1142,6 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         <button data-view="dashboard" class="active">Today</button>
         <button data-view="stats">Stats</button>
         <button data-view="plan">Plan</button>
-        <button data-view="settings">⚙</button>
       </div>
       <div class="topbar-right">
         <div class="hamburger-wrap">
@@ -1158,6 +1157,9 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
             <div class="hm-divider"></div>
             <button class="hm-item hidden" id="devMenuBtn" data-view="dev">
               <span class="hm-icon" style="color:var(--amber);">⚡</span> <span style="color:var(--amber);font-weight:700;">Dev Panel</span>
+            </button>
+            <button class="hm-item" id="settingsMenuBtn">
+              <span class="hm-icon">⚙</span> Settings
             </button>
             <button class="hm-item" id="refreshBtn">
               <span class="hm-icon">⟳</span> Refresh
@@ -1336,11 +1338,18 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 
         <!-- Reset password sub-form (shown inline) -->
         <div class="dev-card hidden" id="devResetPassCard">
-          <h3>Reset Password for <span id="devResetPassFor" style="color:var(--red);"></span></h3>
-          <div class="field"><label>New password (min 6 chars)</label><input type="password" id="devNewPass" minlength="6" placeholder="New password"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <button class="btn btn-primary" style="width:auto;padding:11px 22px;" id="devResetPassConfirm">Set new password</button>
-            <button class="btn btn-ghost" style="width:auto;padding:11px 22px;" id="devResetPassCancel">Cancel</button>
+          <div class="dev-card-head">
+            <h3>Reset Password for <span id="devResetPassFor" style="color:var(--red);font-family:var(--ff-display);"></span></h3>
+          </div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:14px;">
+            <div class="field" style="margin:0;">
+              <label style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;display:block;margin-bottom:8px;">New password (min 6 chars)</label>
+              <input type="password" id="devNewPass" minlength="6" placeholder="New password" style="width:100%;">
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-primary" style="flex:1;" id="devResetPassConfirm">Set new password</button>
+              <button class="btn btn-ghost" style="flex:1;" id="devResetPassCancel">Cancel</button>
+            </div>
           </div>
         </div>
       </section>
@@ -1999,6 +2008,11 @@ function logout(silent){
   }
   state.token = null; state.username = null; state.plan = null; state.todayLogs = {};
   localStorage.removeItem('ironlog_token'); localStorage.removeItem('ironlog_username');
+  // Reset dev panel so the next user never inherits Ray's privileges
+  const devMenuBtn = document.getElementById('devMenuBtn');
+  if (devMenuBtn) devMenuBtn.classList.add('hidden');
+  devLoaded = false;
+  devPanelSetup._initialized = false;
   document.getElementById('mainScreen').classList.add('hidden');
   document.getElementById('authScreen').classList.remove('hidden');
 }
@@ -2233,7 +2247,6 @@ function renderDashboard(day){
       completeBanner = `<div class="complete-banner">
         <div class="cb-icon">🏆</div>
         <div class="cb-text">${isLast ? 'Day 3 complete! You\'re ready for your full program.' : `Beginner day ${meta.day} of 3 complete!`}</div>
-        <button class="btn btn-primary" id="beginnerAdvanceBtn" style="margin-top:12px;">${isLast ? 'Start full plan' : 'Continue to day '+(meta.day+1)}</button>
       </div>`;
     } else {
       completeBanner = `<div class="complete-banner"><div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div></div>`;
@@ -2296,6 +2309,10 @@ function renderDashboard(day){
         <div class="week-strip" id="weekStripWrap"></div>
       </div>
       ${groupsHtml}
+      ${isBeginnerActive ? `
+      <div style="padding:6px 0 18px;text-align:center;">
+        <button id="beginnerSkipBtn" style="background:none;border:none;color:var(--muted-2);font-size:12px;font-family:var(--ff-body);cursor:pointer;text-decoration:underline;padding:8px 12px;">Skip the 3-day intro and start full plan</button>
+      </div>` : ''}
     </div>
   `;
   state.burstFired = (pct === 100); // don't burst on a page load that was already complete
@@ -2312,8 +2329,18 @@ function renderDashboard(day){
   revealOnScroll(container);
   renderWeekStrip();
 
-  const beginnerAdvanceBtn = container.querySelector('#beginnerAdvanceBtn');
-  if(beginnerAdvanceBtn) beginnerAdvanceBtn.onclick = advanceBeginnerProgram;
+  const beginnerSkipBtn = container.querySelector('#beginnerSkipBtn');
+  if(beginnerSkipBtn) beginnerSkipBtn.onclick = async () => {
+    const confirmed = confirm('Skip the 3-day intro and go straight to your full training plan?');
+    if(!confirmed) return;
+    const meta = state.plan.__beginner;
+    if(meta){ meta.active = false; meta.sessionsCompleted = 3; }
+    await api('savePlan', { plan: state.plan }).catch(()=>{});
+    toast('Switched to your full training plan!', true);
+    const day = getActiveDay();
+    document.getElementById('dashDayTitle').textContent = day.charAt(0)+day.slice(1).toLowerCase();
+    renderDashboard(day);
+  };
 
   container.querySelectorAll('.exercise-row').forEach(row => {
     const exName = row.getAttribute('data-ex');
@@ -2679,11 +2706,9 @@ function refreshRing(){
       const meta = state.plan.__beginner;
       const isLast = meta.day >= 3;
       banner.innerHTML = `<div class="cb-icon">🏆</div>
-        <div class="cb-text">${isLast ? "Day 3 complete! You're ready for your full program." : `Beginner day ${meta.day} of 3 complete!`}</div>
-        <button class="btn btn-primary" id="beginnerAdvanceBtn" style="margin-top:12px;">${isLast ? 'Start full plan' : 'Continue to day '+(meta.day+1)}</button>`;
+        <div class="cb-text">${isLast ? "Day 3 complete! You're ready for your full program." : `Beginner day ${meta.day} of 3 complete!`}</div>`;
       ringCard.appendChild(banner);
-      const btn = banner.querySelector('#beginnerAdvanceBtn');
-      if(btn) btn.onclick = advanceBeginnerProgram;
+      setTimeout(() => advanceBeginnerProgram(), 1800);
     } else {
       banner.innerHTML = '<div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div>';
       ringCard.appendChild(banner);
@@ -3526,6 +3551,8 @@ document.addEventListener('DOMContentLoaded', () => {});
 // Called once after successful login
 function devPanelSetup() {
   if (!isDev()) return;
+  if (devPanelSetup._initialized) return; // prevent duplicate listeners on re-login
+  devPanelSetup._initialized = true;
   initDevPanel();
 
   document.getElementById('devRefreshUsers')?.addEventListener('click', devLoadUsers);
@@ -3623,6 +3650,10 @@ document.addEventListener('ironlog:viewchange', (e) => {
   // Dev panel shortcut
   document.getElementById('devMenuBtn')?.addEventListener('click', () => {
     switchView('dev');
+  });
+  // Settings shortcut
+  document.getElementById('settingsMenuBtn')?.addEventListener('click', () => {
+    switchView('settings');
   });
 })();
 
