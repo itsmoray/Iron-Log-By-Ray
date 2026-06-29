@@ -971,6 +971,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 }
 .dev-user-row:hover{border-color:var(--amber); background:rgba(255,176,32,.05);}
 .dev-user-row.dev-me{border-left:3px solid var(--amber);}
+.dev-user-row.active{border-color:var(--amber); background:rgba(255,176,32,.08); box-shadow:0 0 0 1px var(--amber);}
 .dev-user-avatar{
   width:34px;height:34px;border-radius:50%;background:var(--line); flex:none;
   display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text);
@@ -3427,29 +3428,49 @@ function devRenderUsers(users) {
     </div>`;
   }).join('');
 
-  // Row click → open drawer
+  // Row click → open/close drawer
   table.querySelectorAll('.dev-user-row').forEach(row => {
-    row.addEventListener('click', () => devOpenDrawer(row.dataset.username));
+    row.addEventListener('click', () => {
+      const username = row.dataset.username;
+      const isOpen = document.getElementById('devDrawer')?.classList.contains('open');
+      const isSame = devSelectedUser === username;
+      // Clear active from all rows first
+      table.querySelectorAll('.dev-user-row').forEach(r => r.classList.remove('active'));
+      // Only mark active if we're opening (not toggling closed)
+      if (!(isOpen && isSame)) row.classList.add('active');
+      devOpenDrawer(username);
+    });
   });
 }
 
 let devSelectedUser = null;
 
 async function devOpenDrawer(username) {
-  devSelectedUser = username;
   const drawer  = document.getElementById('devDrawer');
+  if (!drawer) return;
+
+  // Toggle closed if same user clicked again
+  if (drawer.classList.contains('open') && devSelectedUser === username) {
+    devCloseDrawer();
+    return;
+  }
+
+  devSelectedUser = username;
   const nameEl  = document.getElementById('devDrawerName');
   const bodyEl  = document.getElementById('devDrawerContent');
   const delBtn  = document.getElementById('devDeleteUserBtn');
   const rstBtn  = document.getElementById('devResetPassBtn');
 
-  if (!drawer) return;
   if (nameEl) nameEl.textContent = username;
   if (bodyEl) bodyEl.innerHTML = '<div class="dev-loading">Loading stats…</div>';
+
+  // Remove any previously injected top-exercises block so it never stacks up
+  drawer.querySelectorAll('.dev-top-ex').forEach(el => el.remove());
+
   drawer.classList.add('open');
   drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Hide delete for developer account
+  // Hide delete/reset for developer account
   const isDevAccount = username === DEVELOPER_USERNAME;
   if (delBtn) delBtn.style.display = isDevAccount ? 'none' : '';
   if (rstBtn) rstBtn.style.display = isDevAccount ? 'none' : '';
@@ -3468,9 +3489,15 @@ async function devOpenDrawer(username) {
       { val: s.hasPlan ? 'Yes' : 'No', key: 'Has plan' },
     ];
 
-    let topEx = '';
+    if (bodyEl) bodyEl.innerHTML = statBlocks.map(b =>
+      `<div class="dev-drawer-stat"><div class="dds-val">${b.val}</div><div class="dds-key">${b.key}</div></div>`
+    ).join('');
+
+    // Inject top-exercises block once, tagged so it can be cleaned next time
     if (s.topExercises && s.topExercises.length) {
-      topEx = `<div style="padding:14px 18px;border-top:1px solid var(--line);">
+      const topWrap = document.createElement('div');
+      topWrap.className = 'dev-top-ex';
+      topWrap.innerHTML = `<div style="padding:14px 18px;border-top:1px solid var(--line);">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-weight:700;">Top exercises</div>
         ${s.topExercises.slice(0,5).map(ex =>
           `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
@@ -3478,17 +3505,7 @@ async function devOpenDrawer(username) {
           </div>`
         ).join('')}
       </div>`;
-    }
-
-    if (bodyEl) bodyEl.innerHTML = statBlocks.map(b =>
-      `<div class="dev-drawer-stat"><div class="dds-val">${b.val}</div><div class="dds-key">${b.key}</div></div>`
-    ).join('');
-
-    // Append top exercises after grid (outside grid)
-    if (topEx) {
-      const topWrap = document.createElement('div');
-      topWrap.innerHTML = topEx;
-      drawer.querySelector('.dev-drawer-body').insertAdjacentElement('afterend', topWrap.firstElementChild);
+      drawer.querySelector('.dev-drawer-body').insertAdjacentElement('afterend', topWrap);
     }
   } catch(e) { if (bodyEl) bodyEl.innerHTML = '<div class="dev-empty">Error loading stats.</div>'; }
 }
@@ -3496,6 +3513,8 @@ async function devOpenDrawer(username) {
 function devCloseDrawer() {
   const drawer = document.getElementById('devDrawer');
   if (drawer) drawer.classList.remove('open');
+  // Clear active highlight from all rows
+  document.querySelectorAll('.dev-user-row.active').forEach(r => r.classList.remove('active'));
   devSelectedUser = null;
   // Also hide reset pass card
   const rpc = document.getElementById('devResetPassCard');
