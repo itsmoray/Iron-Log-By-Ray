@@ -2068,7 +2068,7 @@ document.getElementById('loginBtn').onclick = async () => {
   // Show "Signing you in…" button state
   document.getElementById('loginBtn').classList.add('signing-in');
   try{
-    const data = await api('login', { username, password });
+    const data = await api('login', { username, password }, { silent: true });
     if(!data.ok){
       document.getElementById('loginBtn').classList.remove('signing-in');
       showAuthError(data.error || 'Login failed.'); return;
