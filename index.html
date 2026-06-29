@@ -281,6 +281,9 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 #loginBtn.signing-in .btn-label{
   opacity:0;
 }
+#loginBtn.signing-in .btn-spinner-dot{
+  display:none !important;
+}
 #loginBtn.signing-in::before{
   content:'Signing you in…';
   position:absolute;
@@ -2175,12 +2178,13 @@ function logout(silent){
   splashEl.classList.remove('fade-out', 'gone');
   splashEl.style.opacity = '1';
   splashEl.style.pointerEvents = 'auto';
+  splash._startTime = Date.now(); // reset so dismiss(2000) counts from now
   splash.set(40, 'Signing out…');
   setTimeout(() => splash.set(80, 'See you next time…'), 700);
   setTimeout(() => splash.set(100, 'Ready'), 1500);
   setTimeout(() => {
     document.getElementById('authScreen').classList.remove('hidden');
-    splash.dismiss();
+    splash.dismiss(2000);
   }, 2000);
 }
 document.getElementById('logoutBtn').onclick = () => logout(false);
@@ -2275,13 +2279,15 @@ function switchView(view){
 
 /* ---- APP ENTRY ---- */
 async function enterApp(){
-  // Keep mainScreen hidden — the transition overlay covers everything while data loads
   document.getElementById('authScreen').classList.add('hidden');
+  // Show mainScreen immediately (overlay is covering it) so skeleton renders in background
+  document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
   devPanelSetup();
+  showSkeletonDashboard();
 
   try{
-    await loadPlanAndToday(); // load all data first, overlay stays visible throughout
+    await loadPlanAndToday(); // overlay stays visible until this completes
   }catch(e){
     console.error('Failed to load plan/today data:', e);
     if(!state.plan) state.plan = DEFAULT_PLAN;
@@ -2292,8 +2298,7 @@ async function enterApp(){
     toast('Could not load data from server. Working offline.');
   }
 
-  // Data fully ready — reveal the app then dismiss the overlay on top
-  document.getElementById('mainScreen').classList.remove('hidden');
+  // Data fully ready — dismiss overlay to reveal the loaded home screen
   const mark = document.querySelector('.brand .mark');
   if(mark){
     mark.classList.remove('logo-pulse');
@@ -2302,7 +2307,6 @@ async function enterApp(){
     setTimeout(() => mark.classList.remove('logo-pulse'), 900);
   }
   dismissLoginTransition();
-  splash.dismiss();
 }
 
 // Older saved plans (stored in the Plans sheet before imageUrl/howTo existed
