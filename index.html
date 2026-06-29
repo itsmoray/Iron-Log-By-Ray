@@ -2008,7 +2008,6 @@ function logout(silent){
   }
   state.token = null; state.username = null; state.plan = null; state.todayLogs = {};
   localStorage.removeItem('ironlog_token'); localStorage.removeItem('ironlog_username');
-  // Reset dev panel so the next user never inherits Ray's privileges
   const devMenuBtn = document.getElementById('devMenuBtn');
   if (devMenuBtn) devMenuBtn.classList.add('hidden');
   devLoaded = false;
@@ -3485,6 +3484,12 @@ async function devOpenDrawer(username) {
   const delBtn  = document.getElementById('devDeleteUserBtn');
   const rstBtn  = document.getElementById('devResetPassBtn');
 
+  // Always hide the reset password card and clear its input when opening any user
+  const rpc = document.getElementById('devResetPassCard');
+  if (rpc) rpc.classList.add('hidden');
+  const rpcInput = document.getElementById('devNewPass');
+  if (rpcInput) rpcInput.value = '';
+
   if (nameEl) nameEl.textContent = username;
   if (bodyEl) bodyEl.innerHTML = '<div class="dev-loading">Loading stats…</div>';
 
@@ -3517,7 +3522,8 @@ async function devOpenDrawer(username) {
       `<div class="dev-drawer-stat"><div class="dds-val">${b.val}</div><div class="dds-key">${b.key}</div></div>`
     ).join('');
 
-    // Inject top-exercises block once, tagged so it can be cleaned next time
+    // Remove any previously injected top-exercises block before re-rendering
+    drawer.querySelectorAll('.dev-top-ex').forEach(el => el.remove());
     if (s.topExercises && s.topExercises.length) {
       const topWrap = document.createElement('div');
       topWrap.className = 'dev-top-ex';
@@ -3551,7 +3557,7 @@ document.addEventListener('DOMContentLoaded', () => {});
 // Called once after successful login
 function devPanelSetup() {
   if (!isDev()) return;
-  if (devPanelSetup._initialized) return; // prevent duplicate listeners on re-login
+  if (devPanelSetup._initialized) return;
   devPanelSetup._initialized = true;
   initDevPanel();
 
@@ -3651,7 +3657,6 @@ document.addEventListener('ironlog:viewchange', (e) => {
   document.getElementById('devMenuBtn')?.addEventListener('click', () => {
     switchView('dev');
   });
-  // Settings shortcut
   document.getElementById('settingsMenuBtn')?.addEventListener('click', () => {
     switchView('settings');
   });
