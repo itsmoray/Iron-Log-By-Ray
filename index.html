@@ -1536,6 +1536,7 @@ const splash = {
   bar:    document.getElementById('splashBar'),
   status: document.getElementById('splashStatus'),
   _pct: 0,
+  _startTime: Date.now(),
 
   set(pct, text) {
     this._pct = pct;
@@ -1543,13 +1544,15 @@ const splash = {
     if (this.status && text) this.status.textContent = text;
   },
 
-  dismiss() {
+  dismiss(minMs) {
     if (!this.el) return;
+    const elapsed = Date.now() - this._startTime;
+    const wait = minMs ? Math.max(0, minMs - elapsed) : 220;
     this.set(100);
     setTimeout(() => {
       this.el.classList.add('fade-out');
       setTimeout(() => { this.el.classList.add('gone'); }, 650);
-    }, 220);
+    }, wait);
   }
 };
 
@@ -2072,8 +2075,7 @@ document.getElementById('loginBtn').onclick = async () => {
   const password = document.getElementById('loginPass').value;
   if(!username || !password){ showAuthError('Enter your username and password.'); return; }
   setAuthBusy(true);
-  setBtnLoading(document.getElementById('loginBtn'), true);
-  // Show "Signing you in…" button state
+  // Show "Signing you in…" button state (handles visuals — no spinner dot needed)
   document.getElementById('loginBtn').classList.add('signing-in');
   try{
     const data = await api('login', { username, password }, { silent: true });
@@ -2088,7 +2090,7 @@ document.getElementById('loginBtn').onclick = async () => {
     if(e.message !== 'No API URL' && e.message !== 'Session expired'){
       showAuthError(e.message || 'Cannot reach the server. Check your API URL in Settings.');
     }
-  } finally { setAuthBusy(false); setBtnLoading(document.getElementById('loginBtn'), false); }
+  } finally { setAuthBusy(false); }
 };
 
 document.getElementById('loginPass').onkeydown = (e) => { if(e.key==='Enter') document.getElementById('loginBtn').click(); };
@@ -2167,7 +2169,19 @@ function logout(silent){
   devLoaded = false;
   devPanelSetup._initialized = false;
   document.getElementById('mainScreen').classList.add('hidden');
-  document.getElementById('authScreen').classList.remove('hidden');
+
+  // Show splash for 2 seconds before revealing login screen
+  const splashEl = document.getElementById('splash');
+  splashEl.classList.remove('fade-out', 'gone');
+  splashEl.style.opacity = '1';
+  splashEl.style.pointerEvents = 'auto';
+  splash.set(40, 'Signing out…');
+  setTimeout(() => splash.set(80, 'See you next time…'), 700);
+  setTimeout(() => splash.set(100, 'Ready'), 1500);
+  setTimeout(() => {
+    document.getElementById('authScreen').classList.remove('hidden');
+    splash.dismiss();
+  }, 2000);
 }
 document.getElementById('logoutBtn').onclick = () => logout(false);
 document.getElementById('logoutBtnSettings').onclick = () => logout(false);
@@ -3858,11 +3872,11 @@ document.addEventListener('ironlog:viewchange', (e) => {
       splash.dismiss();
     }
   } else {
-    // No saved token — show splash for 2 seconds then reveal login screen
+    // No saved token — ensure splash shows for at least 2s from page load
     splash.set(40, 'Initialising…');
     setTimeout(() => splash.set(80, 'Welcome back…'), 700);
     setTimeout(() => splash.set(100, 'Ready'), 1500);
-    setTimeout(() => splash.dismiss(), 2000);
+    splash.dismiss(2000);
   }
 })();
 </script>
