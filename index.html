@@ -556,6 +556,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .loader.show{opacity:1; pointer-events:auto;}
 .spinner{width:34px; height:34px; border:3px solid var(--line); border-top-color:var(--red); border-radius:50%; animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+#refreshBtn.spinning{animation:spin .7s linear infinite;}
 .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
 .empty-state .big{font-family:var(--ff-display); font-size:15px; color:var(--text); margin-bottom:8px; letter-spacing:.06em;}
 
@@ -672,13 +673,25 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .week-day.today .wd-lbl{ color:var(--red); font-weight:800; }
 
 /* ============ NEW: MOTIVATIONAL MICRO-COPY ============ */
-.motivation-line{
-  font-size:12px; color:var(--muted); font-style:italic; text-align:center; margin-bottom:16px;
-  opacity:0; transition: opacity .28s var(--ease); min-height:16px;
+.motivation-card{
+  display:flex; align-items:center; gap:13px;
+  background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--red);
+  border-radius:10px; padding:13px 16px; margin-bottom:16px;
+  box-shadow:0 0 0 0 var(--red-glow);
 }
-.motivation-line.show{ opacity:1; }
+.motivation-mark{
+  font-family:Georgia,'Times New Roman',serif; font-size:30px; line-height:1;
+  color:var(--red); opacity:.6; flex:none; margin-top:-4px;
+}
+.motivation-text{
+  font-size:13px; color:var(--text); font-style:italic; min-height:16px;
+  opacity:0; transform:translateY(5px);
+  transition: opacity .32s var(--ease), transform .32s var(--ease);
+}
+.motivation-text.show{ opacity:1; transform:translateY(0); }
 
 @media (prefers-reduced-motion: reduce){
+  .motivation-text{opacity:1; transform:none; transition:none;}
   .view-out-left,.view-out-right,.view-in-active,.exercise-row.flash,.logo-pulse,.rest-timer.done,
   .burst-particle,.pr-badge.pop{ animation:none !important; transition:none !important; }
 }
@@ -947,6 +960,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
       </div>
       <div class="topbar-right">
         <div class="user-chip">Hi, <b id="userChipName">—</b></div>
+        <button class="icon-btn" id="refreshBtn" title="Refresh">⟳</button>
         <button class="icon-btn" id="logoutBtn" title="Log out">⏻</button>
       </div>
     </div>
@@ -961,7 +975,10 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
           </div>
           <div class="date-pill" id="dashDate">—</div>
         </div>
-        <div class="motivation-line" id="motivationLine"></div>
+        <div class="motivation-card">
+          <div class="motivation-mark">&ldquo;</div>
+          <div class="motivation-text" id="motivationLine"></div>
+        </div>
         <div id="dashboardContent" class="dash-grid"></div>
         <div class="session-notes-card reveal" id="sessionNotesCard" style="display:none;">
           <h4>🗒️ Session Notes</h4>
@@ -1485,14 +1502,23 @@ const MOTIVATION_LINES = [
   "Train with intent. Track with precision.",
 ];
 let motivationTimer = null;
+let motivationFadeTimeout = null;
 function startMotivationCycle(){
   const el = document.getElementById('motivationLine');
   if(!el) return;
-  clearInterval(motivationTimer);
+  // BUG FIX: this used to restart on every renderDashboard() call (initial
+  // load, plan changes, and — now that auto-resync exists — every 90s/tab
+  // focus too). Each restart cleared the setInterval but NOT a fade that was
+  // already mid-flight, so two independent 280ms fades could land back to
+  // back on the same element and stomp on each other — that's the
+  // "overlapping" glitch. The cycle never needs restarting once it's
+  // running, so just leave it alone if it already is.
+  if(motivationTimer) return;
   let i = Math.floor(Math.random() * MOTIVATION_LINES.length);
   const show = () => {
     el.classList.remove('show');
-    setTimeout(() => {
+    clearTimeout(motivationFadeTimeout);
+    motivationFadeTimeout = setTimeout(() => {
       el.textContent = MOTIVATION_LINES[i % MOTIVATION_LINES.length];
       el.classList.add('show');
       i++;
@@ -2372,6 +2398,13 @@ function refreshRing(){
       banner.innerHTML = '<div class="cb-icon">🏆</div><div class="cb-text">Session complete! Great work.</div>';
       ringCard.appendChild(banner);
     }
+  } else if(ringCard && pct < 100){
+    // BUG FIX: previously the banner was only ever added, never removed —
+    // unchecking a set after hitting 100% left "Session Complete!" stuck on
+    // screen until the next full page reload. Drop it the moment we're no
+    // longer actually at 100%.
+    const stale = ringCard.querySelector('.complete-banner');
+    if(stale) stale.remove();
   }
   // Fire a one-time particle/glow burst the moment a session newly hits 100% —
   // not on a page load that was already complete, only on the live transition.
@@ -2381,6 +2414,36 @@ function refreshRing(){
   } else if(pct < 100){
     state.burstFired = false;
   }
+  // BUG FIX: the "This week" strip on the homescreen only ever got its data
+  // from a full renderDashboard() pass — ticking a set via the +/- or checkbox
+  // (refreshRing(), called on every set change) never touched it, so today's
+  // dot kept showing whatever completion % it had at the last full render
+  // until the app was closed and reopened. Patch it live here instead.
+  updateWeekStripToday(pct);
+}
+
+// Keeps the "This week" strip's TODAY cell in sync with the live ring
+// percentage, and patches the in-memory stats cache so switching to the
+// Stats tab right after doesn't show a stale number for today either.
+function updateWeekStripToday(pct){
+  const todayS = todayStr();
+  const key = new Date().getFullYear() + '-' + (new Date().getMonth()+1);
+  if(state.statsCache[key]){
+    const days = state.statsCache[key].days || (state.statsCache[key].days = []);
+    const idx = days.findIndex(d => d.date === todayS);
+    if(idx >= 0) days[idx] = Object.assign({}, days[idx], { pct });
+    else days.push({ date: todayS, pct, setsDone:0, exercisesDone:0, totalExercises:0 });
+  }
+  const cell = document.querySelector('.week-day.today');
+  if(!cell) return;
+  let lvl = 'lvl-0';
+  if(pct === 100) lvl = 'lvl-full';
+  else if(pct >= 66) lvl = 'lvl-high';
+  else if(pct >= 33) lvl = 'lvl-mid';
+  else if(pct > 0) lvl = 'lvl-low';
+  cell.classList.remove('lvl-0','lvl-low','lvl-mid','lvl-high','lvl-full');
+  cell.classList.add(lvl);
+  cell.title = todayS + ' · ' + pct + '%';
 }
 
 // Confetti celebration on session complete
@@ -2940,6 +3003,59 @@ document.getElementById('prHistoryLoadBtn')?.addEventListener('click', async () 
     </div>`;
   }catch(e){ if(e.message!=='Session expired') toast('Could not load PRs.'); if(btn){ btn.disabled=false; btn.textContent='Load all-time PRs'; } }
 });
+
+/* ---- REFRESH (manual button + automatic background resync) ----
+   The dashboard, week strip, and stats numbers are all updated optimistically
+   in the UI the moment you tap something, then synced to the backend in the
+   background. That's normally fine, but it means anything that changed
+   somewhere else — another device, a stale tab, the cache window on
+   getMonthStats — won't show up here until something forces a refetch.
+   This gives the user both a manual "pull to refresh"-style button and a
+   quiet automatic resync so they're never staring at stale data.
+*/
+async function silentResync(){
+  if(!state.token) return;
+  if(state.planEditMode) return;              // don't clobber an in-progress plan edit
+  if(document.querySelector('.modal-overlay.show')) return; // don't yank content while a modal's open
+  try{
+    const boot = await api('bootstrap', { date: todayStr() }, { silent:true });
+    if(!boot.ok) return;
+    state.todayLogs = {};
+    (boot.logs || []).forEach(l => {
+      state.todayLogs[l.exerciseName] = l;
+      if(l.exerciseName === '__SESSION_NOTE__') state.sessionNote = l.note || '';
+    });
+    // Today's numbers may have changed — drop the cached month so Stats/week
+    // strip recompute from fresh data instead of serving what's in memory.
+    delete state.statsCache[new Date().getFullYear() + '-' + (new Date().getMonth()+1)];
+    if(currentView === 'dashboard') renderDashboard(getActiveDay());
+    else renderWeekStrip(); // keep the homescreen strip fresh even while looking at another tab
+    if(currentView === 'stats') loadStats();
+    return true;
+  }catch(e){ return false; } // background refresh — fail quietly
+}
+
+const refreshBtn = document.getElementById('refreshBtn');
+if(refreshBtn){
+  refreshBtn.onclick = async () => {
+    if(refreshBtn.classList.contains('spinning')) return;
+    refreshBtn.classList.add('spinning');
+    const ok = await silentResync();
+    refreshBtn.classList.remove('spinning');
+    toast(ok ? 'Refreshed!' : 'Could not refresh — check your connection.', ok);
+  };
+}
+
+// Auto-resync whenever the app/tab comes back into view (covers phones
+// waking from the lock screen, switching back from another app, etc.) —
+// this is the case that most often left things stale before.
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') silentResync();
+});
+
+// Plus a light periodic background check while the app is left open and
+// visible, so a long idle session doesn't quietly drift out of sync either.
+setInterval(() => { if(document.visibilityState === 'visible') silentResync(); }, 90000);
 
 /* ---- LIGHT MODE TOGGLE ---- */
 const lightToggle = document.getElementById('lightModeToggle');
