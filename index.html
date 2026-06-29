@@ -470,7 +470,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
 .edit-day-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:12px; overflow:hidden;}
 .edit-day-head{display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--panel-2); border-bottom:1px solid var(--line);}
 .edit-day-head h3{margin:0; font-family:var(--ff-display); font-size:11px; letter-spacing:.1em; color:var(--red);}
-.edit-row{display:grid; grid-template-columns:1fr 1.8fr .7fr .9fr .7fr 30px; gap:8px; align-items:end; padding:10px 16px; border-bottom:1px solid var(--line);}
+.edit-row{display:grid; grid-template-columns:1fr 1.8fr .7fr .9fr 30px; gap:8px; align-items:end; padding:10px 16px; border-bottom:1px solid var(--line);}
 .edit-row:last-of-type{border-bottom:none;}
 @media (max-width:600px){
   .edit-row{grid-template-columns:1fr 1fr; gap:6px; padding:12px 16px;}
@@ -1091,23 +1091,6 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
   </div>
 </div>
 
-<!-- SET LOG MODAL: weight + reps per set -->
-<div id="setLogModal" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-head">
-      <div>
-        <h3 id="setLogModalTitle">Log Sets</h3>
-        <div style="font-size:11px;color:var(--muted);font-family:var(--ff-mono);margin-top:2px;" id="setLogModalSub"></div>
-      </div>
-      <button class="modal-close" data-close-modal>&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="set-log-list" id="setLogList"></div>
-      <button class="btn btn-primary" id="setLogSaveBtn">Save sets</button>
-    </div>
-  </div>
-</div>
-
 <div id="onboardModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-head"><h3>Welcome to IRON LOG</h3></div>
@@ -1319,31 +1302,7 @@ function toast(msg, good=false){
   toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
 }
 
-/* ---- LONG PRESS HELPER ----
-   Fires callback after 500ms press. If the press ends before that, it's
-   treated as a normal tap (no callback) so click events still fire normally. */
-function setupLongPress(el, callback){
-  if(!el) return;
-  let timer = null;
-  let longFired = false;
-  const start = (e) => {
-    longFired = false;
-    timer = setTimeout(() => {
-      longFired = true;
-      if(navigator.vibrate) navigator.vibrate(60);
-      callback();
-    }, 500);
-  };
-  const cancel = () => { clearTimeout(timer); };
-  el.addEventListener('touchstart', start, { passive:true });
-  el.addEventListener('touchend', cancel, { passive:true });
-  el.addEventListener('touchmove', cancel, { passive:true });
-  el.addEventListener('mousedown', start);
-  el.addEventListener('mouseup', cancel);
-  el.addEventListener('mouseleave', cancel);
-}
-
-
+/* ---- REST TIMER ----
    Pops up after logging a set (a "+" tap that increases setsDone), counts
    down from a default rest period, and turns green + buzzes on finish.
    -15s/+15s adjust on the fly, Skip dismisses immediately. */
@@ -1944,7 +1903,7 @@ function renderDashboard(day){
         </div>
         <div class="ex-info" data-action="info">
           <div class="ex-name ${completed?'done':''}">${escHtml(ex.exerciseName)}</div>
-          <div class="ex-meta">${ex.reps} REPS &nbsp;·&nbsp; TARGET ${ex.sets} SETS${ex.restTime && Number(ex.restTime) !== 60 ? ` &nbsp;·&nbsp; <span class="rest-preset-badge">${ex.restTime}s rest</span>` : ''}</div>
+          <div class="ex-meta">${ex.reps} REPS &nbsp;·&nbsp; TARGET ${ex.sets} SETS</div>
         </div>
         <button class="info-btn" data-action="info" title="How to perform this">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="11"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>
@@ -2013,11 +1972,6 @@ function renderDashboard(day){
     row.querySelector('[data-action="toggle"]').onclick = () => handleToggle(row, exName, target);
     row.querySelector('[data-action="inc"]').onclick = () => handleStep(row, exName, target, 1);
     row.querySelector('[data-action="dec"]').onclick = () => handleStep(row, exName, target, -1);
-    // Long-press "+" marks all remaining sets done at once
-    setupLongPress(row.querySelector('[data-action="inc"]'), () => {
-      const cur = parseInt(row.querySelector('.set-display').textContent.split('/')[0], 10);
-      if(cur < target) handleStep(row, exName, target, target - cur);
-    });
     row.querySelectorAll('[data-action="info"]').forEach(el => {
       el.onclick = (e) => { e.stopPropagation(); openExerciseModal(day, groupName, exName); };
     });
@@ -2222,13 +2176,7 @@ async function handleStep(row, exName, target, delta){
   queueSaveLog(exName, cur, target, completed);
   if(delta > 0 && cur > 0) checkPersonalRecord(row, exName, cur);
   // Logged a new set (not just decremented) and there's more to go — offer a rest timer.
-  if(delta > 0 && cur > 0 && !completed){
-    // Use per-exercise rest time if set, otherwise fall back to default
-    const day = getActiveDay();
-    const ex = (state.plan[day]||[]).find(e => e.exerciseName === exName);
-    const restSecs = (ex && ex.restTime && Number(ex.restTime) > 0) ? Number(ex.restTime) : REST_DEFAULT_SECONDS;
-    startRestTimer(restSecs);
-  }
+  if(delta > 0 && cur > 0 && !completed) startRestTimer();
 }
 
 function updateRowUI(row, cur, target, completed){
@@ -2246,10 +2194,10 @@ function updateRowUI(row, cur, target, completed){
 // exercise gets marked fully done — makes each completed exercise feel rewarding.
 function flashRow(row){
   if(reduceMotion || !row) return;
-  row.classList.remove('flash','flash-strong');
+  row.classList.remove('flash');
   void row.offsetWidth;
-  row.classList.add('flash-strong');
-  setTimeout(() => row.classList.remove('flash-strong'), 800);
+  row.classList.add('flash');
+  setTimeout(() => row.classList.remove('flash'), 650);
 }
 
 /* ---- PERSONAL RECORDS ----
@@ -2578,7 +2526,6 @@ function renderPlanEditor(){
           <div><div class="mini-lbl">Exercise</div><input type="text" data-field="exerciseName" value="${escapeAttr(ex.exerciseName||'')}" placeholder="Exercise name"></div>
           <div><div class="mini-lbl">Sets</div><input type="number" min="1" max="10" data-field="sets" value="${escapeAttr(ex.sets||3)}" placeholder="3"></div>
           <div><div class="mini-lbl">Reps</div><input type="text" data-field="reps" value="${escapeAttr(ex.reps||'12-15')}" placeholder="12-15"></div>
-          <div><div class="mini-lbl">Rest (s)</div><input type="number" min="15" max="300" step="15" data-field="restTime" value="${escapeAttr(ex.restTime||60)}" placeholder="60"></div>
           <button class="row-del" data-action="del-row" title="Remove exercise">&times;</button>
         </div>
         <div class="edit-row" data-idx="${idx}" style="grid-template-columns:1fr 2fr 2fr;">
@@ -2659,8 +2606,7 @@ async function savePlanChanges(){
         reps: String(ex.reps||'12-15').trim() || '12-15',
         muscle: (ex.muscle||'back').trim() || 'back',
         howTo: String(ex.howTo||'').trim(),
-        imageUrl: String(ex.imageUrl||'').trim(),
-        restTime: Math.max(15, Math.min(300, Number(ex.restTime)||60))
+        imageUrl: String(ex.imageUrl||'').trim()
       }));
   });
   try{
