@@ -36,6 +36,40 @@
   --ease: cubic-bezier(.22,1,.36,1);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
 }
+/* ============ LIGHT MODE ============ */
+body.light-mode{
+  --black:#f0edf1;
+  --panel:#ffffff;
+  --panel-2:#f5f2f6;
+  --line:#ddd8de;
+  --red:#e0102e;
+  --red-deep:#c00826;
+  --red-glow:rgba(224,16,46,.25);
+  --text:#1a141c;
+  --muted:#6b6570;
+  --muted-2:#9993a0;
+  --green:#18b864;
+  --green-glow:rgba(24,184,100,.25);
+  --amber:#c88800;
+}
+body.light-mode{
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(224,16,46,.06), transparent 60%), var(--black);
+}
+body.light-mode .topbar{
+  background:rgba(240,237,241,.94);
+}
+body.light-mode #loader{background:rgba(240,237,241,.88);}
+body.light-mode .auth-wrap{background:var(--black);}
+body.light-mode .rest-timer{background:var(--panel); color:var(--text);}
+body.light-mode .rt-ring-bg{stroke:var(--line);}
+body.light-mode .rt-time{color:var(--text);}
+body.light-mode .rt-label{color:var(--muted);}
+body.light-mode .rt-btn{background:var(--panel-2); border-color:var(--line); color:var(--text);}
+body.light-mode .rt-skip{color:var(--muted);}
+body.light-mode select option{background:var(--panel);color:var(--text);}
+body.light-mode .offline-banner{background:var(--panel); border-color:var(--line);}
+body.light-mode .modal-card{background:var(--panel);}
+body.light-mode .toast{background:#2a252c; color:#f3eef0;}
 html{scroll-behavior:smooth;}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -648,10 +682,213 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
   .view-out-left,.view-out-right,.view-in-active,.exercise-row.flash,.logo-pulse,.rest-timer.done,
   .burst-particle,.pr-badge.pop{ animation:none !important; transition:none !important; }
 }
+
+/* ============ SKELETON LOADERS ============ */
+@keyframes shimmer{
+  0%{background-position:-400px 0;}
+  100%{background-position:400px 0;}
+}
+.skeleton{
+  background:linear-gradient(90deg, var(--panel) 25%, var(--panel-2) 50%, var(--panel) 75%);
+  background-size:800px 100%;
+  animation:shimmer 1.4s infinite linear;
+  border-radius:8px;
+}
+.skel-ring-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.skel-circle{width:160px;height:160px;border-radius:50%;}
+.skel-line{height:14px; width:80%;}
+.skel-line-sm{height:10px; width:55%;}
+.skel-group{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;
+  margin-bottom:12px;
+}
+.skel-group-head{height:42px; border-bottom:1px solid var(--line);}
+.skel-row{display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--line);}
+.skel-row:last-child{border-bottom:none;}
+.skel-check{width:26px;height:26px;border-radius:7px;flex:none;}
+.skel-text{height:12px;border-radius:6px;flex:1;}
+.skel-btn{width:60px;height:30px;border-radius:7px;flex:none;}
+@media(max-width:860px){.skel-circle{width:130px;height:130px;}}
+
+/* ============ OFFLINE BANNER ============ */
+#offlineBanner{
+  position:fixed; top:0; left:0; right:0; z-index:300;
+  background:var(--panel-2); border-bottom:1px solid var(--amber);
+  padding:8px 16px; display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--amber); font-family:var(--ff-mono);
+  transform:translateY(-100%); transition:transform .3s var(--ease);
+  pointer-events:none;
+}
+#offlineBanner.show{transform:translateY(0); pointer-events:auto;}
+#offlineBanner .ob-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none;}
+#offlineBanner .ob-queue{margin-left:auto;font-size:11px;color:var(--muted);}
+
+/* ============ CONFETTI CELEBRATION ============ */
+#confettiCanvas{
+  position:fixed; inset:0; pointer-events:none; z-index:400;
+  display:none;
+}
+
+/* ============ STRONGER SET COMPLETION FLASH ============ */
+.exercise-row.flash-strong{
+  animation:rowSweep .75s var(--ease) both;
+  position:relative;
+}
+@keyframes rowSweep{
+  0%{background:transparent;}
+  15%{background:rgba(40,217,124,.18);}
+  100%{background:rgba(40,217,124,.04);}
+}
+.exercise-row.flash-strong::after{
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent 0%, rgba(40,217,124,.22) 50%, transparent 100%);
+  animation:sweepLine .55s var(--ease) both;
+}
+@keyframes sweepLine{
+  0%{transform:translateX(-100%); opacity:1;}
+  100%{transform:translateX(100%); opacity:0;}
+}
+
+/* ============ LOG WEIGHT & REPS MODAL ============ */
+#setLogModal .modal-card{max-width:380px;}
+.set-log-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.set-log-row{
+  display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:center;
+  background:var(--black);border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+}
+.set-log-label{font-family:var(--ff-mono);font-size:11px;color:var(--muted);white-space:nowrap;}
+.set-log-input{
+  background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  padding:7px 10px;border-radius:8px;font-size:13px;font-family:var(--ff-mono);
+  width:100%;outline:none;text-align:center;
+}
+.set-log-input:focus{border-color:var(--red);box-shadow:0 0 0 2px var(--red-glow);}
+.set-log-unit{font-size:10px;color:var(--muted-2);text-align:center;margin-top:2px;}
+.set-log-prev{font-size:10px;color:var(--muted);font-family:var(--ff-mono);text-align:center;margin-top:2px;grid-column:1/-1;}
+
+/* ============ SESSION NOTES ============ */
+.session-notes-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:16px;margin-top:12px;
+}
+.session-notes-card h4{
+  font-family:var(--ff-display);font-size:11px;letter-spacing:.08em;color:var(--muted);
+  margin:0 0 10px;text-transform:uppercase;
+}
+.session-notes-textarea{
+  width:100%;background:var(--black);border:1px solid var(--line);color:var(--text);
+  padding:11px 13px;border-radius:10px;font-size:13px;font-family:var(--ff-body);
+  resize:none;outline:none;min-height:72px;transition:.2s;line-height:1.6;
+}
+.session-notes-textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-glow);}
+.session-notes-save{
+  margin-top:8px;background:transparent;border:1px solid var(--line);color:var(--muted);
+  padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.06em;transition:.2s;font-family:var(--ff-display);
+}
+.session-notes-save:hover{border-color:var(--red);color:var(--red);}
+.session-notes-save.saved{border-color:var(--green);color:var(--green);}
+
+/* ============ BODYWEIGHT TRACKER ============ */
+.bw-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;margin-top:16px;
+}
+.bw-card h4{font-family:var(--ff-display);font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;text-transform:uppercase;}
+.bw-input-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
+.bw-input{
+  flex:1;background:var(--black);border:1px solid var(--line);color:var(--text);
+  padding:11px 14px;border-radius:10px;font-size:16px;font-family:var(--ff-mono);outline:none;transition:.2s;
+}
+.bw-input:focus{border-color:var(--red);box-shadow:0 0 0 3px var(--red-glow);}
+.bw-unit{font-size:13px;color:var(--muted);font-family:var(--ff-mono);}
+.bw-save-btn{
+  background:var(--red);border:none;color:#fff;padding:11px 18px;border-radius:10px;
+  font-weight:800;font-size:12px;letter-spacing:.06em;cursor:pointer;font-family:var(--ff-display);
+  transition:.15s;white-space:nowrap;
+}
+.bw-save-btn:hover{filter:brightness(1.1);}
+.bw-chart-wrap{height:140px;position:relative;}
+.bw-canvas{width:100%;height:100%;}
+.bw-current{
+  font-family:var(--ff-display);font-size:22px;font-weight:900;color:var(--red);text-align:center;
+  margin-bottom:4px;
+}
+.bw-current-lbl{font-size:10px;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
+.bw-delta{font-size:12px;font-family:var(--ff-mono);text-align:center;margin-bottom:10px;}
+.bw-delta.up{color:#ff7a7a;}
+.bw-delta.down{color:var(--green);}
+
+/* ============ PR HISTORY PAGE ============ */
+.pr-history-section{margin-top:16px;}
+.pr-history-section h4{font-family:var(--ff-display);font-size:11px;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;text-transform:uppercase;}
+.pr-table{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+}
+.pr-table-head{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;
+  padding:9px 16px;background:var(--panel-2);border-bottom:1px solid var(--line);
+  font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+}
+.pr-table-row{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  padding:11px 16px;border-bottom:1px solid var(--line);
+  transition:background .2s var(--ease);
+}
+.pr-table-row:last-child{border-bottom:none;}
+.pr-table-row:hover{background:rgba(255,19,54,.04);}
+.pr-ex-name{font-size:13px;font-weight:600;}
+.pr-sets{font-family:var(--ff-mono);font-size:13px;color:var(--red);}
+.pr-date{font-family:var(--ff-mono);font-size:11px;color:var(--muted);}
+.pr-trophy{margin-right:4px;}
+.pr-empty{padding:20px;text-align:center;color:var(--muted);font-size:13px;}
+#prHistoryLoadBtn{
+  background:transparent;border:1px solid var(--line);color:var(--muted);
+  padding:9px 18px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;
+  font-family:var(--ff-display);letter-spacing:.05em;text-transform:uppercase;
+  transition:.2s;margin-top:10px;display:block;
+}
+#prHistoryLoadBtn:hover{border-color:var(--red);color:var(--red);}
+
+/* ============ PER-EXERCISE REST TIMER ============ */
+.rest-preset-badge{
+  font-size:9px;font-family:var(--ff-mono);color:var(--muted);background:var(--panel);
+  border:1px solid var(--line);padding:2px 6px;border-radius:999px;margin-left:6px;
+  vertical-align:middle;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.rest-preset-badge:hover{border-color:var(--red);color:var(--red);}
+
+/* ============ THEME TOGGLE IN SETTINGS ============ */
+.theme-toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.theme-toggle-row span{font-size:13px;color:var(--text);}
+.toggle-switch{
+  position:relative;width:44px;height:24px;flex:none;
+}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{
+  position:absolute;inset:0;background:var(--line);border-radius:999px;cursor:pointer;
+  transition:.25s var(--ease);
+}
+.toggle-track::before{
+  content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;
+  background:#fff;border-radius:50%;transition:.25s var(--ease-spring);
+}
+.toggle-switch input:checked + .toggle-track{background:var(--red);}
+.toggle-switch input:checked + .toggle-track::before{transform:translateX(20px);}
+
 </style>
 </head>
 <body>
 
+<div id="offlineBanner"><div class="ob-dot"></div><span id="offlineBannerText">Working offline — changes will sync when back online</span><span class="ob-queue" id="offlineQueueCount"></span></div>
+<canvas id="confettiCanvas"></canvas>
 <div id="app">
 
   <!-- ===================== AUTH SCREEN ===================== -->
@@ -758,6 +995,30 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
             <span class="sw" style="background:var(--red)"></span><span>full</span>
           </div>
         </div>
+
+        <!-- Bodyweight Tracker -->
+        <div class="bw-card reveal">
+          <h4>⚖️ Bodyweight Tracker</h4>
+          <div class="bw-input-row">
+            <input type="number" class="bw-input" id="bwInput" placeholder="0.0" step="0.1" min="20" max="300">
+            <span class="bw-unit" id="bwUnit">kg</span>
+            <button class="bw-save-btn" id="bwSaveBtn">Log weight</button>
+          </div>
+          <div id="bwCurrentWrap" class="hidden">
+            <div class="bw-current" id="bwCurrentVal">—</div>
+            <div class="bw-current-lbl">Current weight</div>
+            <div class="bw-delta" id="bwDelta"></div>
+          </div>
+          <div class="bw-chart-wrap"><canvas class="bw-canvas" id="bwChart"></canvas></div>
+        </div>
+
+        <!-- PR History -->
+        <div class="pr-history-section reveal">
+          <h4>🏆 Personal Records</h4>
+          <div id="prHistoryWrap">
+            <button id="prHistoryLoadBtn">Load all-time PRs</button>
+          </div>
+        </div>
       </section>
 
       <!-- PLAN -->
@@ -780,8 +1041,19 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
             <button class="btn btn-primary" id="changePassBtn" style="width:auto;padding:11px 22px;">Update password</button>
           </div>
           <div class="settings-card">
+            <h3>Appearance</h3>
+            <div class="theme-toggle-row">
+              <span>Light mode</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="lightModeToggle">
+                <div class="toggle-track"></div>
+              </label>
+            </div>
+            <p style="color:var(--muted);font-size:12px;margin:0;">Switch to a bright theme — useful in well-lit gym environments.</p>
+          </div>
+          <div class="settings-card">
             <h3>About</h3>
-            <p>IRON LOG — By RaySolutions. v1.1 — Built for serious lifters. Your data lives in your own Google Sheet. 6-day split: Back+Bi · Chest+Tri · Shoulders+Legs+Abs · Bi+Back · Tri+Chest · Legs+Shoulders+Abs.</p>
+            <p>IRON LOG — By RaySolutions. v1.2 — Built for serious lifters. Your data lives in your own Google Sheet. 6-day split: Back+Bi · Chest+Tri · Shoulders+Legs+Abs · Bi+Back · Tri+Chest · Legs+Shoulders+Abs.</p>
             <p style="margin:0;">3 sets · 12–15 reps · No excuses.</p>
           </div>
           <div class="settings-card">
