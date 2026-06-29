@@ -1090,6 +1090,25 @@ async function enterApp(){
   }
 }
 
+// Older saved plans (stored in the Plans sheet before imageUrl/howTo existed
+// on exercises) won't have those fields. This backfills them from the live
+// DEFAULT_PLAN template by matching on day + exerciseName, without touching
+// anything the user has actually customized (sets/reps/their own howTo/imageUrl).
+function mergeWithTemplate(savedPlan){
+  if(!savedPlan) return savedPlan;
+  Object.keys(savedPlan).forEach(day => {
+    const templateList = DEFAULT_PLAN[day];
+    if(!templateList) return;
+    (savedPlan[day] || []).forEach(ex => {
+      const match = templateList.find(t => t.exerciseName === ex.exerciseName);
+      if(!match) return;
+      if(!ex.imageUrl || !ex.imageUrl.trim()) ex.imageUrl = match.imageUrl;
+      if(!ex.howTo || !ex.howTo.trim()) ex.howTo = match.howTo;
+    });
+  });
+  return savedPlan;
+}
+
 async function loadPlanAndToday(){
   const boot = await api('bootstrap', { date: todayStr() });
   if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
@@ -1102,7 +1121,7 @@ async function loadPlanAndToday(){
     // Save their starting plan silently so it persists for this user
     api('savePlan', { plan: state.plan }).catch(()=>{});
   } else {
-    state.plan = boot.plan;
+    state.plan = mergeWithTemplate(boot.plan);
   }
 
   const day = getActiveDay();
@@ -1304,15 +1323,7 @@ function openExerciseModal(day, groupName, exerciseName){
   document.getElementById('exModalHowTo').textContent = ex.howTo || 'No instructions added yet for this movement. You can add a description and an image link from the plan editor.';
   const imgWrap = document.getElementById('exModalImgWrap');
   if(ex.imageUrl && ex.imageUrl.trim()){
-    imgWrap.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = ex.imageUrl.trim();
-    img.alt = ex.exerciseName;
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-    img.onerror = () => {
-      imgWrap.innerHTML = MUSCLE_ICONS[ex.muscle] || MUSCLE_ICONS.default;
-    };
-    imgWrap.appendChild(img);
+    imgWrap.innerHTML = `<img src="${escapeAttr(ex.imageUrl)}" alt="${escapeAttr(ex.exerciseName)}" onerror="this.parentElement.innerHTML = MUSCLE_ICONS['${ex.muscle || 'default'}'] || MUSCLE_ICONS.default;">`;
   } else {
     imgWrap.innerHTML = MUSCLE_ICONS[ex.muscle] || MUSCLE_ICONS.default;
   }
