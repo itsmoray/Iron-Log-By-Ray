@@ -327,6 +327,15 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
 .modal-meta-row{display:flex; gap:18px; margin-bottom:4px;}
 .modal-meta-row .mm{font-family:var(--ff-mono); font-size:13px; color:var(--muted);}
 .modal-meta-row .mm b{color:var(--text);}
+.last-time{
+  margin-top:10px; padding:9px 12px; border-radius:9px;
+  background:rgba(255,19,54,.08); border:1px solid var(--red-deep);
+  font-size:12px; color:var(--muted); display:flex; align-items:center; gap:7px;
+  opacity:0; transform:translateY(-4px); transition: opacity .3s var(--ease), transform .3s var(--ease);
+}
+.last-time.show{ opacity:1; transform:translateY(0); }
+.last-time b{ color:var(--text); font-family:var(--ff-mono); }
+.last-time .lt-icon{ font-size:13px; }
 
 /* day-detail modal list */
 .day-modal-row{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
@@ -627,9 +636,9 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
           <div class="legend">
             <span>Completion:</span>
             <span class="sw" style="background:var(--line)"></span><span>none</span>
-            <span class="sw" style="background:rgba(255,19,54,.18)"></span><span>low</span>
-            <span class="sw" style="background:rgba(255,19,54,.42)"></span><span>mid</span>
-            <span class="sw" style="background:rgba(255,19,54,.68)"></span><span>high</span>
+            <span class="sw" style="background:#2f81f7; opacity:.55"></span><span>low</span>
+            <span class="sw" style="background:var(--amber); opacity:.65"></span><span>mid</span>
+            <span class="sw" style="background:#ff7a1a; opacity:.8"></span><span>high</span>
             <span class="sw" style="background:var(--red)"></span><span>full</span>
           </div>
         </div>
@@ -648,12 +657,6 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
       <section id="view-settings" class="hidden">
         <div class="section-head"><div><div class="eyebrow">Account</div><h1>Settings</h1></div></div>
         <div class="settings-grid">
-          <div class="settings-card">
-            <h3>API Connection</h3>
-            <p>Paste your deployed Google Apps Script Web App URL below.</p>
-            <div class="field"><label>Apps Script URL</label><input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec"></div>
-            <button class="btn btn-ghost" id="saveApiUrl" style="width:auto;padding:11px 22px;">Save &amp; Reload</button>
-          </div>
           <div class="settings-card">
             <h3>Change Password</h3>
             <div class="field"><label>Current password</label><input type="password" id="curPass"></div>
@@ -686,6 +689,7 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%;}
         <div class="mm">Target sets <b id="exModalSets">3</b></div>
         <div class="mm">Reps <b id="exModalReps">12-15</b></div>
       </div>
+      <div id="exModalLastTime" class="last-time hidden"></div>
       <div class="howto-label" style="margin-top:14px;">How to perform it</div>
       <p id="exModalHowTo">—</p>
     </div>
@@ -1189,8 +1193,7 @@ function switchView(view){
     renderPlanView();
   }
   if(view === 'settings'){
-    // FIX #6: always fill apiUrlInput with current URL (not just if it has a placeholder)
-    document.getElementById('apiUrlInput').value = API_URL;
+    // API URL is now fixed in code — no user-facing field to populate.
   }
 }
 
@@ -1199,7 +1202,6 @@ async function enterApp(){
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
-  document.getElementById('apiUrlInput').value = API_URL;
   // FIX #9: wrap in try/catch so a failed loadPlanAndToday doesn't leave app in broken state
   try{
     await loadPlanAndToday();
@@ -1446,6 +1448,7 @@ function openExerciseModal(day, groupName, exerciseName){
   document.getElementById('exModalSets').textContent = ex.sets;
   document.getElementById('exModalReps').textContent = ex.reps;
   document.getElementById('exModalHowTo').textContent = ex.howTo || 'No instructions added yet for this movement. You can add a description and an image link from the plan editor.';
+  loadLastTime(ex.exerciseName);
   const imgWrap = document.getElementById('exModalImgWrap');
   if(ex.imageUrl && ex.imageUrl.trim()){
     imgWrap.innerHTML = `<img src="${escapeAttr(ex.imageUrl)}" alt="${escapeAttr(ex.exerciseName)}" onerror="this.parentElement.innerHTML = MUSCLE_ICONS['${ex.muscle || 'default'}'] || MUSCLE_ICONS.default;">`;
@@ -1457,6 +1460,48 @@ function openExerciseModal(day, groupName, exerciseName){
 
 function openModal(id){ document.getElementById(id).classList.add('show'); }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ---- LAST TIME YOU DID THIS ----
+   Shows the most recent prior session's result for an exercise inside its
+   detail modal. Cached per exercise for the session so reopening the same
+   exercise doesn't re-hit the server every time. */
+const lastTimeCache = {};
+async function loadLastTime(exerciseName){
+  const el = document.getElementById('exModalLastTime');
+  el.classList.remove('show');
+  el.classList.add('hidden');
+
+  if(lastTimeCache[exerciseName] !== undefined){
+    renderLastTime(lastTimeCache[exerciseName]);
+    return;
+  }
+  try{
+    const res = await api('getExerciseHistory', { exerciseName }, { silent:true });
+    if(!res.ok) return;
+    lastTimeCache[exerciseName] = res.last;
+    renderLastTime(res.last);
+  }catch(e){ /* fail silently — this is a nice-to-have, not core flow */ }
+}
+
+function renderLastTime(last){
+  const el = document.getElementById('exModalLastTime');
+  if(!last){
+    el.innerHTML = `<span class="lt-icon">📋</span> First time logging this one — go set the baseline.`;
+  } else {
+    el.innerHTML = `<span class="lt-icon">⏱️</span> Last time (${relativeDay(last.date)}): <b>${last.setsDone}/${last.targetSets} sets</b>${last.completed ? ' · completed' : ''}`;
+  }
+  el.classList.remove('hidden');
+  requestAnimationFrame(() => el.classList.add('show'));
+}
+
+function relativeDay(dateStr){
+  const diffDays = Math.round((new Date(todayStr()+'T12:00:00') - new Date(dateStr+'T12:00:00')) / 86400000);
+  if(diffDays === 1) return 'yesterday';
+  if(diffDays < 7) return diffDays + ' days ago';
+  if(diffDays < 14) return '1 week ago';
+  if(diffDays < 30) return Math.round(diffDays/7) + ' weeks ago';
+  return new Date(dateStr+'T12:00:00').toLocaleDateString(undefined,{month:'short', day:'numeric'});
+}
 
 // Shown once, only to a brand new user on their very first login (no plan
 // row exists yet for them). Resolves to 'beginner' or 'experienced' based on
@@ -1918,15 +1963,6 @@ document.getElementById('changePassBtn').onclick = async () => {
   }catch(e){ if(e.message !== 'Session expired') toast('Could not update password.'); }
 };
 
-document.getElementById('saveApiUrl').onclick = () => {
-  const v = document.getElementById('apiUrlInput').value.trim();
-  if(!v){ toast('Enter a URL first.'); return; }
-  API_URL = v;
-  localStorage.setItem('ironlog_api_url', v);
-  toast('Saved! Reloading…', true);
-  setTimeout(()=>location.reload(), 900);
-};
-
 /* ---- BOOT ---- */
 (async function boot(){
   if(state.token){
@@ -1934,7 +1970,6 @@ document.getElementById('saveApiUrl').onclick = () => {
       document.getElementById('authScreen').classList.add('hidden');
       document.getElementById('mainScreen').classList.remove('hidden');
       document.getElementById('userChipName').textContent = state.username;
-      document.getElementById('apiUrlInput').value = API_URL;
       await loadPlanAndToday(); // bootstrap call also validates the token server-side
       return;
     }catch(e){
