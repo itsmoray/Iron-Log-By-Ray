@@ -2150,7 +2150,7 @@ function completeLogin(data){
 // FIX #5: logout(silent=true) must NOT call api() to avoid loops
 function logout(silent){
   if(!silent && state.token){
-    api('logout', {}).catch(()=>{});
+    api('logout', {}, { silent: true }).catch(()=>{});
   }
   state.token = null; state.username = null; state.plan = null; state.todayLogs = {};
   localStorage.removeItem('ironlog_token'); localStorage.removeItem('ironlog_username');
