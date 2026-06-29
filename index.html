@@ -1713,7 +1713,15 @@ let state = {
 function todayStr(){ const d = new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 function pad(n){ return String(n).padStart(2,'0'); }
 function todayDayName(){ return DAYS_ORDER[ (new Date().getDay()+6) % 7 ]; }
-function showLoader(v){ document.getElementById('loader').classList.toggle('show', v); }
+function showLoader(v){
+  // Never show the global spinner when the auth screen or login transition overlay is active
+  if(v){
+    const authVisible = !document.getElementById('authScreen').classList.contains('hidden');
+    const overlayVisible = document.getElementById('loginTransitionOverlay').classList.contains('show');
+    if(authVisible || overlayVisible) return;
+  }
+  document.getElementById('loader').classList.toggle('show', v);
+}
 
 let syncDotCount = 0;
 function showSyncDot(v){
@@ -2253,23 +2261,13 @@ function switchView(view){
 
 /* ---- APP ENTRY ---- */
 async function enterApp(){
-  splash.set(35, 'Authenticating…');
+  // Keep mainScreen hidden — the transition overlay covers everything while data loads
   document.getElementById('authScreen').classList.add('hidden');
-  document.getElementById('mainScreen').classList.remove('hidden');
   document.getElementById('userChipName').textContent = state.username;
   devPanelSetup();
-  // Dismiss the login transition overlay now that the home screen is ready
-  dismissLoginTransition();
-  showSkeletonDashboard();
-  const mark = document.querySelector('.brand .mark');
-  if(mark){
-    mark.classList.remove('logo-pulse');
-    void mark.offsetWidth;
-    mark.classList.add('logo-pulse');
-    setTimeout(() => mark.classList.remove('logo-pulse'), 900);
-  }
+
   try{
-    await loadPlanAndToday();
+    await loadPlanAndToday(); // load all data first, overlay stays visible throughout
   }catch(e){
     console.error('Failed to load plan/today data:', e);
     if(!state.plan) state.plan = DEFAULT_PLAN;
@@ -2278,8 +2276,19 @@ async function enterApp(){
     document.getElementById('dashDate').textContent = new Date().toLocaleDateString(undefined,{ year:'numeric', month:'short', day:'numeric' });
     renderDashboard(day);
     toast('Could not load data from server. Working offline.');
-    splash.dismiss();
   }
+
+  // Data fully ready — reveal the app then dismiss the overlay on top
+  document.getElementById('mainScreen').classList.remove('hidden');
+  const mark = document.querySelector('.brand .mark');
+  if(mark){
+    mark.classList.remove('logo-pulse');
+    void mark.offsetWidth;
+    mark.classList.add('logo-pulse');
+    setTimeout(() => mark.classList.remove('logo-pulse'), 900);
+  }
+  dismissLoginTransition();
+  splash.dismiss();
 }
 
 // Older saved plans (stored in the Plans sheet before imageUrl/howTo existed
@@ -2302,11 +2311,18 @@ function mergeWithTemplate(savedPlan){
 }
 
 async function loadPlanAndToday(){
-  splash.set(55, 'Loading your plan…');
+  // Update the login transition overlay bar while loading
+  const ltoBar = document.getElementById('ltoBar');
+  const ltoLabel = document.getElementById('ltoLabel');
+  if(ltoBar) ltoBar.style.width = '55%';
+  if(ltoLabel) ltoLabel.textContent = 'Loading your plan…';
+
   const boot = await api('bootstrap', { date: todayStr() }, { silent:true });
   if(!boot.ok) throw new Error(boot.error || 'Could not load app data');
 
-  splash.set(75, 'Building session…');
+  if(ltoBar) ltoBar.style.width = '75%';
+  if(ltoLabel) ltoLabel.textContent = 'Building session…';
+
   if(boot.plan === null || boot.usedDefault){
     // Brand new user, never saved a plan before — ask the onboarding question
     // before deciding which plan to give them.
@@ -2330,10 +2346,10 @@ async function loadPlanAndToday(){
       if(l.exerciseName === '__SESSION_NOTE__') state.sessionNote = l.note || '';
     });
   }
-  splash.set(92, 'Almost ready…');
+  if(ltoBar) ltoBar.style.width = '92%';
+  if(ltoLabel) ltoLabel.textContent = 'Almost ready…';
   renderDashboard(day);
   loadExerciseBests(day); // async, non-blocking — PR badges light up once it resolves
-  splash.dismiss();
 }
 
 /* ---- DASHBOARD ---- */
@@ -3820,7 +3836,9 @@ document.addEventListener('ironlog:viewchange', (e) => {
       document.getElementById('userChipName').textContent = state.username;
       devPanelSetup();
       showSkeletonDashboard();
+      splash.set(55, 'Loading your plan…');
       await loadPlanAndToday(); // bootstrap call also validates the token server-side
+      splash.dismiss();
       return;
     }catch(e){
       console.error('Boot failed:', e);
@@ -3840,9 +3858,11 @@ document.addEventListener('ironlog:viewchange', (e) => {
       splash.dismiss();
     }
   } else {
-    // No saved token — go straight to login screen
-    splash.set(100, 'Ready');
-    splash.dismiss();
+    // No saved token — show splash for 2 seconds then reveal login screen
+    splash.set(40, 'Initialising…');
+    setTimeout(() => splash.set(80, 'Welcome back…'), 700);
+    setTimeout(() => splash.set(100, 'Ready'), 1500);
+    setTimeout(() => splash.dismiss(), 2000);
   }
 })();
 </script>
