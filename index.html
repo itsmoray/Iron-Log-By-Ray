@@ -162,6 +162,36 @@ a{color:inherit;}
 #logoutBtn:hover{color:#ff8a98;}
 .icon-btn:active{transform:scale(.9);}
 
+/* ============ HAMBURGER MENU ============ */
+.hamburger-wrap{position:relative;}
+.hamburger-menu{
+  position:absolute; top:calc(100% + 10px); right:0;
+  background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  min-width:160px; padding:6px; z-index:200;
+  box-shadow:0 16px 40px rgba(0,0,0,.55);
+  opacity:0; pointer-events:none; transform:translateY(-6px) scale(.96);
+  transform-origin:top right;
+  transition: opacity .2s var(--ease), transform .2s var(--ease);
+}
+.hamburger-menu.open{opacity:1; pointer-events:auto; transform:translateY(0) scale(1);}
+.hm-user{
+  padding:8px 12px 6px; font-size:12px; color:var(--muted); white-space:nowrap;
+}
+.hm-user b{color:var(--text); font-weight:700;}
+.hm-divider{height:1px; background:var(--line); margin:4px 0;}
+.hm-item{
+  display:flex; align-items:center; gap:9px; width:100%; border:none; background:transparent;
+  color:var(--text); padding:9px 12px; border-radius:8px; font-size:13px; font-weight:600;
+  cursor:pointer; text-align:left; font-family:var(--ff-body);
+  transition: background .15s var(--ease), color .15s var(--ease);
+}
+.hm-item:hover{background:var(--panel-2); color:var(--red);}
+.hm-item:active{transform:scale(.97);}
+.hm-icon{font-size:14px; width:18px; text-align:center; flex-shrink:0;}
+.hm-danger{color:#ff8a98;}
+.hm-danger:hover{color:#ff4466; background:rgba(255,19,54,.1);}
+#hamburgerBtn.menu-open{color:var(--red); border-color:var(--red-deep); box-shadow:0 0 10px var(--red-glow);}
+
 main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;}
 
 /* ============ AUTH SCREEN ============ */
@@ -959,9 +989,25 @@ main{flex:1; padding:22px 20px; max-width:1180px; margin:0 auto; width:100%; ove
         <button data-view="settings">⚙</button>
       </div>
       <div class="topbar-right">
-        <div class="user-chip">Hi, <b id="userChipName">—</b></div>
-        <button class="icon-btn" id="refreshBtn" title="Refresh">⟳</button>
-        <button class="icon-btn" id="logoutBtn" title="Log out">⏻</button>
+        <div class="hamburger-wrap">
+          <button class="icon-btn" id="hamburgerBtn" title="Menu" aria-label="Menu" aria-expanded="false">
+            <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect y="0" width="16" height="2" rx="1" fill="currentColor"/>
+              <rect y="6" width="16" height="2" rx="1" fill="currentColor"/>
+              <rect y="12" width="16" height="2" rx="1" fill="currentColor"/>
+            </svg>
+          </button>
+          <div class="hamburger-menu" id="hamburgerMenu" role="menu">
+            <div class="hm-user">Hi, <b id="userChipName">—</b></div>
+            <div class="hm-divider"></div>
+            <button class="hm-item" id="refreshBtn">
+              <span class="hm-icon">⟳</span> Refresh
+            </button>
+            <button class="hm-item hm-danger" id="logoutBtn">
+              <span class="hm-icon">⏻</span> Log out
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3069,6 +3115,35 @@ if(lightToggle){
     localStorage.setItem('ironlog_lightmode', on ? '1' : '0');
   };
 }
+
+/* ---- HAMBURGER MENU ---- */
+(function(){
+  const btn = document.getElementById('hamburgerBtn');
+  const menu = document.getElementById('hamburgerMenu');
+  if(!btn || !menu) return;
+  function openMenu(){
+    menu.classList.add('open');
+    btn.classList.add('menu-open');
+    btn.setAttribute('aria-expanded','true');
+  }
+  function closeMenu(){
+    menu.classList.remove('open');
+    btn.classList.remove('menu-open');
+    btn.setAttribute('aria-expanded','false');
+  }
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+  document.addEventListener('click', (e) => {
+    if(!menu.contains(e.target) && e.target !== btn) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeMenu(); });
+  // Close menu after an action is triggered
+  menu.querySelectorAll('.hm-item').forEach(item => {
+    item.addEventListener('click', () => setTimeout(closeMenu, 120));
+  });
+})();
 
 /* ---- BOOT ---- */
 (async function boot(){
